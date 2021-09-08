@@ -20,6 +20,19 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-mongodb
+	implementation("org.springframework.data:spring-data-mongodb:3.2.4")
+
+	// https://mvnrepository.com/artifact/com.slack.api/slack-api-client
+	implementation("com.slack.api:slack-api-client:1.12.0")
+
+	// https://mvnrepository.com/artifact/com.google.apis/google-api-services-sheets
+	implementation("com.google.apis:google-api-services-sheets:v4-rev612-1.25.0")
+
+	// https://mvnrepository.com/artifact/com.google.api-client/google-api-client
+	implementation("com.google.api-client:google-api-client:1.32.1")
+
+
 }
 
 tasks.withType<KotlinCompile> {
