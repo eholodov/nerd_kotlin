@@ -39,6 +39,9 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client-jetty
 	implementation("com.google.oauth-client:google-oauth-client-jetty:1.30.6")
 
+	// https://mvnrepository.com/artifact/com.google.auth/google-auth-library-oauth2-http
+	implementation("com.google.auth:google-auth-library-oauth2-http:1.1.0")
+
 
 }
 
