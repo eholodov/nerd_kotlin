@@ -21,13 +21,8 @@ class NerdKotlinApplication(@Autowired val googleService: GoogleService) {
 	}
 	fun printData() {
 		googleService.createCredentials()
-		val dataSheet = googleService.readData()
-		for (i in 0 until dataSheet!![0].size) {
-			for (j in 0 until dataSheet.size) {
-				println(dataSheet[j][i])
-			}
-			println("--------------------------")
-		}
+		var sheet = googleService.getParticularSheet("w35")
+		val dataSheet = googleService.readData(sheet)
 	}
 
 }
