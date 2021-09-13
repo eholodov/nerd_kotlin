@@ -21,6 +21,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 
+
 	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-mongodb
 	implementation("org.springframework.data:spring-data-mongodb:3.2.4")
 
