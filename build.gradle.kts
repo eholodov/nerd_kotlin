@@ -20,6 +20,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+
 	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-mongodb
 	implementation("org.springframework.data:spring-data-mongodb:3.2.4")
 
@@ -31,6 +32,17 @@ dependencies {
 
 	// https://mvnrepository.com/artifact/com.google.api-client/google-api-client
 	implementation("com.google.api-client:google-api-client:1.32.1")
+
+
+	// https://mvnrepository.com/artifact/com.google.api-client/google-api-client-jackson2
+	implementation("com.google.api-client:google-api-client-jackson2:1.20.0")
+
+	// https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client-jetty
+	implementation("com.google.oauth-client:google-oauth-client-jetty:1.30.6")
+
+	// https://mvnrepository.com/artifact/com.google.auth/google-auth-library-oauth2-http
+	implementation("com.google.auth:google-auth-library-oauth2-http:1.1.0")
+
 
 
 }
