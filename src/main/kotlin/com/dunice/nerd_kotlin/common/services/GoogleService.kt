@@ -20,10 +20,10 @@ import javax.annotation.PostConstruct
 class GoogleService{
 
     @Value("\${service.account.path}")
-    val serviceAccountAddress : String = ""
+    lateinit var serviceAccountAddress : String
 
     @Value("\${google.spreadsheet.id}")
-    val spreadsheetId : String = ""
+    lateinit var spreadsheetId : String
 
     @Value("#{\${interviewerAlias}}")
     lateinit var interviewerAlias : Map<String, String>
@@ -63,7 +63,7 @@ class GoogleService{
         var listOfSpreadSheets = ArrayList<SpreadSheetCardInfo>()
         if (data != null) {
             for (singleRow in data.drop(1)) {
-                singleRow[GoogleSheetFields.PARTICIPANT_FULL_NAME.index].let {
+                if (singleRow[GoogleSheetFields.PARTICIPANT_FULL_NAME.index] != null) {
                     val interviewer = interviewerAlias[singleRow[GoogleSheetFields.INTERVIEWER_FULL_NAME.index]]
                     val assistant = interviewerAlias[singleRow[GoogleSheetFields.ASSISTANT_NAME.index]]
 
