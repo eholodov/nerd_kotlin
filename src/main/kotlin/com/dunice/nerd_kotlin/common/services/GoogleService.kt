@@ -1,5 +1,6 @@
 package com.dunice.nerd_kotlin.common.services
 
+import com.dunice.nerd_kotlin.common.types.SpreadSheetCardInfo
 import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
@@ -28,8 +29,16 @@ class GoogleService{
     @Value("\${google.spreadsheet.id}")
     val spreadsheetId : String = ""
 
+    @Value("#{\${interviewerAlias}}")
+    var interviewerAlias : Map<String, String> = mapOf()
+
     lateinit var service: Sheets
 
+    @PostConstruct
+    fun init() {
+        createCredentials()
+        getInformation("35")
+    }
     fun createCredentials() {
         service = Sheets.Builder(
             GoogleNetHttpTransport.newTrustedTransport(),
@@ -50,5 +59,34 @@ class GoogleService{
     fun readData(sheet: Sheet): MutableList<MutableList<Any>>?  =
         service.spreadsheets().values().get(spreadsheetId, sheet.properties.title).execute().getValues()
 
+    fun getInformation(
+        currentWeekNumber: String
+    ) {
+        var data = this.readData(this.getParticularSheet("(w$currentWeekNumber)"))
+        var listOfSpreadSheets = ArrayList<SpreadSheetCardInfo>()
+        if (data != null) {
+            for (singleRow in data.drop(1)) {
+                singleRow[GoogleSheetFields.PARTICIPANT_FULL_NAME.index].let {
+                    val interviewer = interviewerAlias[singleRow[GoogleSheetFields.INTERVIEWER_FULL_NAME.index]]
+                    val assistant = interviewerAlias[singleRow[GoogleSheetFields.ASSISTANT_NAME.index]]
+//TODO Change Errors
+                    if (interviewer == null) throw RuntimeException()
+
+                    if ((singleRow[GoogleSheetFields.ASSISTANT_NAME.index] != null) and (assistant == null))
+                        throw RuntimeException()
+
+                    listOfSpreadSheets.add(
+                        SpreadSheetCardInfo(
+                            
+                        )
+                    )
+
+                }
+
+            }
+                println()
+        }
+
+    }
 
 }
