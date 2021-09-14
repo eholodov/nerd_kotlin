@@ -1,7 +1,9 @@
 package com.dunice.nerd_kotlin.common.services
 
+import com.dunice.nerd_kotlin.common.errors.CustomError
 import com.dunice.nerd_kotlin.common.types.GoogleSheetFields
 import com.dunice.nerd_kotlin.common.types.SpreadSheetCardInfo
+import com.dunice.nerd_kotlin.common.utils.DateTimeUtils
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.sheets.v4.Sheets
@@ -24,14 +26,14 @@ class GoogleService{
     val spreadsheetId : String = ""
 
     @Value("#{\${interviewerAlias}}")
-    var interviewerAlias : Map<String, String> = mapOf()
+    lateinit var interviewerAlias : Map<String, String>
 
     lateinit var service: Sheets
 
     @PostConstruct
     fun init() {
         createCredentials()
-        getInformation("35")
+        getInformation(DateTimeUtils().getNumberOfWeek().toString())
     }
 
     fun createCredentials() {
@@ -48,7 +50,7 @@ class GoogleService{
         for (sheet in allSheets) {
             if (sheetName in sheet.properties.title) return sheet
         }
-        throw RuntimeException()
+        throw CustomError("Sheet is not found")
     }
 
     fun readData(sheet: Sheet): MutableList<MutableList<Any>>?  =
@@ -64,11 +66,12 @@ class GoogleService{
                 singleRow[GoogleSheetFields.PARTICIPANT_FULL_NAME.index].let {
                     val interviewer = interviewerAlias[singleRow[GoogleSheetFields.INTERVIEWER_FULL_NAME.index]]
                     val assistant = interviewerAlias[singleRow[GoogleSheetFields.ASSISTANT_NAME.index]]
-//TODO Change Errors
-                    if (interviewer == null) throw RuntimeException()
+
+                    if (interviewer == null)
+                        throw CustomError("Alias for interviewer ${singleRow[GoogleSheetFields.INTERVIEWER_FULL_NAME.index]} not found!")
 
                     if ((singleRow[GoogleSheetFields.ASSISTANT_NAME.index] != null) and (assistant == null))
-                        throw RuntimeException()
+                        throw CustomError("Alias for assistant ${singleRow[GoogleSheetFields.ASSISTANT_NAME.index]} not found!")
 
                     listOfSpreadSheets.add(
                         SpreadSheetCardInfo(
