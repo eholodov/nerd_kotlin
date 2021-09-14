@@ -88,7 +88,6 @@ class GoogleService{
                 }
 
             }
-                println()
         }
 
     }
