@@ -1,4 +1,4 @@
-package com.dunice.nerd_kotlin.common.services
+package com.dunice.nerd_kotlin.common.types
 
 enum class GoogleSheetFields(val index: Int, val alias: String) {
     PARTICIPANT_FULL_NAME(0, "ФИО"),
