@@ -8,4 +8,10 @@ class GroupingUtils {
 
     fun groupCardsByPerson(cards: List<SpreadSheetCardInfo>): Map<String, List<SpreadSheetCardInfo>>
         = cards.groupBy(SpreadSheetCardInfo::nameStudent)
+
+    fun groupCardsByInterviewerAndAssistant(cards: List<SpreadSheetCardInfo>)  {
+        val cardsGroupedByInterviewer = cards.groupBy(SpreadSheetCardInfo::interviewer)
+        println()
+
+    }
 }
