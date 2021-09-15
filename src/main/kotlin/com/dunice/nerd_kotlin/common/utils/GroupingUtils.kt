@@ -10,12 +10,7 @@ class GroupingUtils {
         val groupedList = emptyMap<String, List<String>>().toMutableMap()
         for (card in cards) {
             val info = arrayListOf<String>(card.department, card.subject, card.interviewer, card.date, card.time, card.room, card.assistant!!)
-            if (groupedList.containsKey(card.nameStudent)) {
-                groupedList[card.nameStudent] = info
-            }
-            else {
-                groupedList[card.nameStudent] = info
-            }
+            groupedList[card.nameStudent] = info
         }
         return groupedList
     }
