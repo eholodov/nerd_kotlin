@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.io.FileInputStream
 import java.lang.RuntimeException
+import java.util.stream.Collectors
 import javax.annotation.PostConstruct
 
 @Component
@@ -31,9 +32,10 @@ class GoogleService{
     lateinit var service: Sheets
 
     @PostConstruct
-    fun init() {
+    private fun init() {
         createCredentials()
-        getInformation(DateTimeUtils().getNumberOfWeek().toString())
+
+//        println(getInformation(DateTimeUtils().getNumberOfWeek().toString()))
     }
 
     fun createCredentials() {
@@ -46,9 +48,9 @@ class GoogleService{
     }
 
     fun getParticularSheet(sheetName : String): Sheet {
-        var allSheets: ArrayList<Sheet> = service.spreadsheets().get(spreadsheetId).execute().getValue("sheets") as ArrayList<Sheet>
+        val allSheets: ArrayList<Sheet> = service.spreadsheets().get(spreadsheetId).execute().getValue("sheets") as ArrayList<Sheet>
         for (sheet in allSheets) {
-            if (sheetName in sheet.properties.title) return sheet
+            if (sheet.properties.title.contains(sheetName)) return sheet
         }
         throw CustomError("Sheet is not found")
     }
@@ -58,38 +60,33 @@ class GoogleService{
 
     fun getInformation(
         currentWeekNumber: String
-    ) {
-        var data = this.readData(this.getParticularSheet("(w$currentWeekNumber)"))
-        var listOfSpreadSheets = ArrayList<SpreadSheetCardInfo>()
-        if (data != null) {
-            for (singleRow in data.drop(1)) {
-                if (singleRow[GoogleSheetFields.PARTICIPANT_FULL_NAME.index] != null) {
-                    val interviewer = interviewerAlias[singleRow[GoogleSheetFields.INTERVIEWER_FULL_NAME.index]]
-                    val assistant = interviewerAlias[singleRow[GoogleSheetFields.ASSISTANT_NAME.index]]
+    ): List<SpreadSheetCardInfo> {
+        val data = this.readData(this.getParticularSheet("(w$currentWeekNumber)"))
+            ?: throw CustomError("Sheet data not found!")
 
-                    if (interviewer == null)
-                        throw CustomError("Alias for interviewer ${singleRow[GoogleSheetFields.INTERVIEWER_FULL_NAME.index]} not found!")
+        return data.drop(1)
+            .stream()
+            .filter { it[GoogleSheetFields.PARTICIPANT_FULL_NAME.index] != "" }
+            .map {
+                val interviewer = interviewerAlias[it[GoogleSheetFields.INTERVIEWER_FULL_NAME.index]]
+                    ?: throw CustomError("Alias for interviewer ${it[GoogleSheetFields.INTERVIEWER_FULL_NAME.index]} not found!")
+                val assistant = interviewerAlias[it[GoogleSheetFields.ASSISTANT_NAME.index]]
 
-                    if ((singleRow[GoogleSheetFields.ASSISTANT_NAME.index] != null) and (assistant == null))
-                        throw CustomError("Alias for assistant ${singleRow[GoogleSheetFields.ASSISTANT_NAME.index]} not found!")
+                if ((it[GoogleSheetFields.ASSISTANT_NAME.index] != "") and (assistant == null))
+                    throw CustomError("Alias for assistant ${it[GoogleSheetFields.ASSISTANT_NAME.index]} not found!")
 
-                    listOfSpreadSheets.add(
-                        SpreadSheetCardInfo(
-                            singleRow[GoogleSheetFields.DEPARTMENT.index].toString(),
-                            singleRow[GoogleSheetFields.DATE.index].toString(),
-                            singleRow[GoogleSheetFields.TIME.index].toString(),
-                            singleRow[GoogleSheetFields.PARTICIPANT_FULL_NAME.index].toString(),
-                            singleRow[GoogleSheetFields.SUBJECT.index].toString(),
-                            singleRow[GoogleSheetFields.ROOM.index].toString(),
-                            singleRow[GoogleSheetFields.INTERVIEWER_FULL_NAME.index].toString(),
-                            singleRow[GoogleSheetFields.ASSISTANT_NAME.index].toString()
-                        )
-                    )
-                }
-
+                return@map SpreadSheetCardInfo(
+                    it[GoogleSheetFields.DEPARTMENT.index].toString(),
+                    it[GoogleSheetFields.DATE.index].toString(),
+                    it[GoogleSheetFields.TIME.index].toString(),
+                    it[GoogleSheetFields.PARTICIPANT_FULL_NAME.index].toString(),
+                    it[GoogleSheetFields.SUBJECT.index].toString(),
+                    it[GoogleSheetFields.ROOM.index].toString(),
+                    interviewer,
+                    assistant
+                )
             }
-        }
-
+            .collect(Collectors.toList())
     }
 
 }

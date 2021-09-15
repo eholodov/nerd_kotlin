@@ -8,6 +8,6 @@ data class SpreadSheetCardInfo(
     val subject: String,
     val room: String,
     val interviewer: String,
-    val assistant: String) {
+    val assistant: String?) {
 
 }
