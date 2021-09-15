@@ -6,10 +6,15 @@ import org.springframework.stereotype.Component
 @Component
 class GroupingUtils {
 
-    fun groupCardsByPerson(cards: List<SpreadSheetCardInfo>): MutableMap<String, SpreadSheetCardInfo> {
-        val groupedList = emptyMap<String, SpreadSheetCardInfo>().toMutableMap()
+    fun groupCardsByPerson(cards: List<SpreadSheetCardInfo>): MutableMap<String, MutableList<SpreadSheetCardInfo>> {
+        val groupedList = emptyMap<String, MutableList<SpreadSheetCardInfo>>().toMutableMap()
         for (card in cards) {
-            groupedList[card.nameStudent] = card
+            if (groupedList.containsKey(card.nameStudent)){
+                groupedList[card.nameStudent]?.add(card)
+            }
+            else {
+                groupedList[card.nameStudent] = mutableListOf(card)
+            }
         }
         return groupedList
     }
