@@ -11,14 +11,12 @@ class GroupingUtils {
         = cards.groupBy(SpreadSheetCardInfo::nameStudent)
 
     fun groupCardsByInterviewerAndAssistant(cards: List<SpreadSheetCardInfo>)  {
-        val cardsGroupedByInterviewer = cards.groupBy(SpreadSheetCardInfo::interviewer)
-        val cardsGroupedByInterviewerAndAssistant = emptyMap<String, MutableList<InterviewerCardInfo>>()
+        val cardsGroupedByInterviewerAndAssistant = cards.groupBy(SpreadSheetCardInfo::interviewer)
+            .mapValues { it -> it.value.map { InterviewerCardInfo().convertFromSheetCard(it) } }
         for (card in cards) {
-            val interviewerCardInfo = InterviewerCardInfo(card)
-            interviewerCardInfo.isAssistant = false
             if (!card.assistant.isNullOrBlank()) {
                 if (cardsGroupedByInterviewerAndAssistant.containsKey(card.assistant)) {
-                    //cardsGroupedByInterviewerAndAssistant[card.assistant]?.add()
+
                 }
             }
         }
