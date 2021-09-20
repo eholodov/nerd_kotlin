@@ -10,4 +10,5 @@ data class SpreadSheetCardInfo(
     val interviewer: String,
     val assistant: String?) {
 
+
 }

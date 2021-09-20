@@ -8,8 +8,17 @@ data class InterviewerCardInfo (
     val subject: String,
     val room: String,
     var isAssistant: Boolean = false,
-    var mainInterviewer: String
+    var mainInterviewer: String? = null
         ) {
 
 }
+
+fun SpreadSheetCardInfo.toInterviewCardInfo() = InterviewerCardInfo(
+    department = department,
+    date = date,
+    room = room,
+    time = time,
+    nameStudent = nameStudent,
+    subject = subject
+)
 
