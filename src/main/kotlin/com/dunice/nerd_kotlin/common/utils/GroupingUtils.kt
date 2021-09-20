@@ -2,6 +2,7 @@ package com.dunice.nerd_kotlin.common.utils
 
 import com.dunice.nerd_kotlin.common.types.InterviewerCardInfo
 import com.dunice.nerd_kotlin.common.types.SpreadSheetCardInfo
+import com.dunice.nerd_kotlin.common.types.convertFromSheetCard
 import org.springframework.stereotype.Component
 
 @Component
@@ -12,15 +13,14 @@ class GroupingUtils {
 
     fun groupCardsByInterviewerAndAssistant(cards: List<SpreadSheetCardInfo>)  {
         val cardsGroupedByInterviewerAndAssistant = cards.groupBy(SpreadSheetCardInfo::interviewer)
-            .mapValues { it -> it.value.map { InterviewerCardInfo().convertFromSheetCard(it) } }
-        for (card in cards) {
-            if (!card.assistant.isNullOrBlank()) {
-                if (cardsGroupedByInterviewerAndAssistant.containsKey(card.assistant)) {
-
-                }
+            .mapValues { it.value.map { convertFromSheetCard(it) }.toMutableList()}.toMutableMap()
+        cards.forEach {
+            if (!it.assistant.isNullOrBlank()) {
+                val assistantCard = convertFromSheetCard(it)
+                assistantCard.isAssistant = true
+                assistantCard.mainInterviewer = it.interviewer
+                cardsGroupedByInterviewerAndAssistant[it.assistant]?.add(assistantCard)
             }
         }
-        println()
-
     }
 }
