@@ -1,7 +1,7 @@
 package com.dunice.nerd_kotlin.common.utils
 
-import org.springframework.stereotype.Component
-import java.time.LocalDateTime
-import java.time.temporal.ChronoField
+import java.time.DayOfWeek
 
-fun getNumberOfWeek(): Int = LocalDateTime.now().get(ChronoField.ALIGNED_WEEK_OF_YEAR)
+
+fun getCyrillicDayOfWeek(dayOfWeek: DayOfWeek) : String =
+    arrayOf("Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье")[dayOfWeek.value - 1]

@@ -2,8 +2,7 @@ package com.dunice.nerd_kotlin.common.services
 
 import com.dunice.nerd_kotlin.common.types.ExamDataDTO
 
-interface SlackService {
+interface NerdService {
 
-    public fun sendMessage(examDataDTO: ExamDataDTO)
-
+    public fun getDataFromRiseUp(examDataDTO: ExamDataDTO)
 }
