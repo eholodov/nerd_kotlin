@@ -27,7 +27,7 @@ class SlackServiceImpl(val membersRepository: MembersRepository) : SlackService 
     @Value("#{\${slackGoogleDocAliases}}")
     lateinit var slackGoogleDocAliases : Map<String, String>
 
-    @PostConstruct
+    //@PostConstruct
     private fun init() {
         this.getUsersFromSlack()
     }
@@ -39,7 +39,9 @@ class SlackServiceImpl(val membersRepository: MembersRepository) : SlackService 
     private fun getUsersFromSlack() {
         val documents: MutableList<Member> = emptyList<Member>().toMutableList()
 
-        slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members.map {
+        slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members
+            .filter {!it.isDeleted}
+            .map {
             val member = Member(it.profile.email, it.id)
             documents.add(member)
         }
