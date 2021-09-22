@@ -57,7 +57,7 @@ class SlackServiceImpl(val membersRepository: MembersRepository) : SlackService 
         )
 
     private fun generateMessage(info : ExamDataDTO) : String =
-        "Привет, ${info.nameStudent.split(" ")[0]}! :wave::skin-tone-2:\n" +
+        "Привет, ${info.nameStudent.split(" ")[0]}! ${String(Character.toChars(0x1F44B))}\n" +
                 "Твое расписание матрицы на эту неделю:\n" +
                 "${getCyrillicDayOfWeek(info.datetime.dayOfWeek)} (${info.datetime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}):" +
                 "${info.subject} ${info.datetime.format(DateTimeFormatter.ofPattern("HH:mm"))} " +
