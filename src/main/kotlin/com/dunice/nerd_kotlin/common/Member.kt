@@ -5,15 +5,13 @@ import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "slackIds")
-class Member {
+class Member(
+    @Indexed(unique = true)
+    var email: String?,
 
+    @Indexed(unique = true)
+    var slackId: String,
+) {
     @Id
     lateinit var id: String
-
-    @Indexed(unique = true)
-    lateinit var email: String
-
-    @Indexed(unique = true)
-    lateinit var slackId: String
-
 }

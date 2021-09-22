@@ -38,14 +38,10 @@ class SlackServiceImpl(val membersRepository: MembersRepository) : SlackService 
 
     private fun getUsersFromSlack() {
         val documents: MutableList<Member> = emptyList<Member>().toMutableList()
+
         slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members.map {
-                user: User? ->
-            {
-                val member = Member()
-                member.email = user!!.profile.email
-                member.slackId = user.id
-                documents.add(member)
-            }
+            val member = Member(it.profile.email, it.id)
+            documents.add(member)
         }
         membersRepository.saveAll(documents)
     }
