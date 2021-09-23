@@ -1,8 +1,9 @@
 package com.dunice.nerd_kotlin.common.controller
 
 import com.dunice.nerd_kotlin.common.services.NerdService
-import com.dunice.nerd_kotlin.common.types.ExamDataDTO
+
 import org.springframework.validation.annotation.Validated
+import com.dunice.nerd_kotlin.common.types.ExamDTO
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -12,7 +13,8 @@ import org.springframework.web.bind.annotation.RestController
 @Validated
 class NerdControllerImpl (val service: NerdService) : NerdController {
 
-    override fun getDataFromRiseUp(@Validated @RequestBody examDataDTO: ExamDataDTO) {
+
+    override fun getDataFromRiseUp(@RequestBody examDataDTO: ExamDTO) {
         service.getDataFromRiseUp(examDataDTO)
     }
 }

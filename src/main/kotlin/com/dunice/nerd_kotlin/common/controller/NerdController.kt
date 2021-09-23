@@ -1,6 +1,6 @@
 package com.dunice.nerd_kotlin.common.controller
 
-import com.dunice.nerd_kotlin.common.types.ExamDataDTO
+import com.dunice.nerd_kotlin.common.types.ExamDTO
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 
@@ -8,5 +8,5 @@ import org.springframework.web.bind.annotation.RequestMapping
 interface NerdController {
 
     @PostMapping
-    public fun getDataFromRiseUp(examDataDTO: ExamDataDTO)
+    public fun getDataFromRiseUp(examDataDTO: ExamDTO)
 }

@@ -10,13 +10,6 @@ import javax.validation.ConstraintViolationException
 @ControllerAdvice
 class NerdControllerAdvice {
 
-    //UCP7QJVD5
-
-//    @ExceptionHandler(Exception::class)
-//    fun handleException(ex: Exception) {
-//        println("🤢 Exception is: ${ex.message} 🤢")
-//    }
-
     @ExceptionHandler(value = [ConstraintViolationException::class, ValueInstantiationException::class,
         HttpMessageNotReadableException::class, MethodArgumentNotValidException::class])
     private fun handleValidationException(ex: Exception) {
@@ -28,4 +21,8 @@ class NerdControllerAdvice {
         println("🤢 Custom Exception is: ${ex.message} 🤢")
     }
 
+    @ExceptionHandler(SlackEmailNotFoundException::class)
+    private fun handleEmailNotFoundException(ex: SlackEmailNotFoundException) {
+        println("🤢 EmailNotFound Exception is: ${ex.message} 🤢")
+    }
 }

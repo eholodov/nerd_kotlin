@@ -7,13 +7,13 @@ import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.Pattern
 
-data class ExamDataDTO(
+data class ExamDTO(
 
     @field:NotNull(message = BLANK_DATETIME)
     val datetime: OffsetDateTime,
 
     @field:NotBlank(message = BLANK_NAME)
-    val nameStudent: String,
+    val studentEmail: String,
 
     @field:NotBlank(message = BLANK_SUBJECT)
     val subject: String,
@@ -26,5 +26,7 @@ data class ExamDataDTO(
     val email: String,
 
     @field:NotBlank(message = BLANK_INTERVIEWER)
-    val interviewer: String
+    val interviewerEmail: String,
+
+    val assistantEmail: String?
 )
