@@ -51,7 +51,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate, val membersRepository: 
         return emails.map {
             membersRepository.findById(it).orElseGet {
                 this.getUsersFromSlack()
-                return@orElseGet membersRepository.findByEmail(it).orElseThrow { SlackEmailNotFoundException(it) }
+                return@orElseGet membersRepository.findOneByEmail(it).orElseThrow { SlackEmailNotFoundException(it) }
             }
         }.associateBy { it.email!! }
     }

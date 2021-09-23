@@ -7,6 +7,6 @@ import java.util.*
 @Repository
 interface MembersRepository : MongoRepository<Member, String>{
 
-    fun findByEmail(email: String) : Optional<Member?>
+    fun findOneByEmail(email: String) : Optional<Member>
 
 }
