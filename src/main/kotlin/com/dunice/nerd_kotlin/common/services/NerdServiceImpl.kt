@@ -10,11 +10,3 @@ class NerdServiceImpl (val slackService: SlackService) : NerdService {
         slackService.sendMessage(examDataDTO)
     }
 }
-
-//{
-//    datetime: "2021-09-22T07:00:00.000Z",
-//    nameStudent: "John Smith",
-//    subject: "JS",
-//    room: "2Floor",
-//    interviewer: "Ivan Galtovich",
-//}

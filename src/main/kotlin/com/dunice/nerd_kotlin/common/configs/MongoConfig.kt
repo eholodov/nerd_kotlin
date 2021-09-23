@@ -2,12 +2,14 @@ package com.dunice.nerd_kotlin.common.configs
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
+import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
-import com.mongodb.client.MongoDatabase
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
+import org.springframework.data.mongodb.core.MongoTemplate
+
 
 @Configuration
 class MongoConfig : AbstractMongoClientConfiguration() {
@@ -18,11 +20,16 @@ class MongoConfig : AbstractMongoClientConfiguration() {
     override fun getDatabaseName(): String = databaseName
 
     @Bean
-    fun getDatabase() : MongoDatabase {
+    fun mongo(): MongoClient {
         val connectionString = ConnectionString("mongodb://localhost:27017/${databaseName}")
         val mongoClientSettings = MongoClientSettings.builder()
             .applyConnectionString(connectionString)
             .build()
-        return MongoClients.create(mongoClientSettings).getDatabase(databaseName)
+        return MongoClients.create(mongoClientSettings)
+    }
+
+    @Bean
+    fun mongoTemplate(): MongoTemplate? {
+        return MongoTemplate(mongo(), databaseName)
     }
 }

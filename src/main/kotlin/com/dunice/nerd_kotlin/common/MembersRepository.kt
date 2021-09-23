@@ -8,7 +8,7 @@ interface MembersRepository : MongoRepository<Member, String>{
 
     //fun saveAllIfNotExist(entities: Iterable<Member>)
 
-    fun getByEmail(email: String) : Member
+    fun getByEmail(email: String) : Member?
 
     //fun ups
 }
