@@ -11,6 +11,8 @@ class Member(
 
     @Indexed(unique = true)
     var slackId: String,
+
+    var fullName: String
 ) {
     @Id
     lateinit var id: String
