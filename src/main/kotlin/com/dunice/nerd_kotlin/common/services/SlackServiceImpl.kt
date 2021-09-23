@@ -46,7 +46,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate, val membersRepository: 
         val documents: MutableList<Member> = emptyList<Member>().toMutableList()
         val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
             throw CustomException(PERSON_NOT_FOUND)
-        users.map {
+        users.filter{!it.isDeleted}.map {
             val member = Member(it.profile.email, it.id)
             documents.add(member)
             mongoTemplate.upsert(Query().addCriteria(Criteria.where("email").`is`(member.email)),

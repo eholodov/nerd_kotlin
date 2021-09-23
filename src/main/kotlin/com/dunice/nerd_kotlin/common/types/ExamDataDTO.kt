@@ -9,7 +9,6 @@ import javax.validation.constraints.Pattern
 
 data class ExamDataDTO(
 
-    //2021-09-22T07:00:00.000Z
     @field:NotNull(message = BLANK_DATETIME)
     val datetime: OffsetDateTime,
 
