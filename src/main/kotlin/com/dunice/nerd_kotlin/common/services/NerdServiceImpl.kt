@@ -7,7 +7,8 @@ import org.springframework.stereotype.Service
 class NerdServiceImpl (val slackService: SlackService) : NerdService {
 
     override fun getDataFromRiseUp(examDataDTO: ExamDataDTO) {
-        slackService.sendMessage(examDataDTO)
+        println("🤢${examDataDTO}🤢")
+        //slackService.sendMessage(examDataDTO)
     }
 }
 

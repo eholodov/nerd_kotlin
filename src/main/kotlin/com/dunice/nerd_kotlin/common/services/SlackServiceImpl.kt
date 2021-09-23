@@ -2,6 +2,8 @@ package com.dunice.nerd_kotlin.common.services
 
 import com.dunice.nerd_kotlin.common.Member
 import com.dunice.nerd_kotlin.common.MembersRepository
+import com.dunice.nerd_kotlin.common.errors.CustomException
+import com.dunice.nerd_kotlin.common.errors.PERSON_NOT_FOUND
 import com.dunice.nerd_kotlin.common.types.ExamDataDTO
 import com.dunice.nerd_kotlin.common.utils.getCyrillicDayOfWeek
 import com.slack.api.Slack
@@ -9,12 +11,16 @@ import com.slack.api.methods.request.chat.ChatPostMessageRequest
 import com.slack.api.methods.request.users.UsersListRequest
 import com.slack.api.model.User
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
 import java.time.format.DateTimeFormatter
 import javax.annotation.PostConstruct
 
 @Service
-class SlackServiceImpl(val membersRepository: MembersRepository) : SlackService {
+class SlackServiceImpl(val mongoTemplate: MongoTemplate, val membersRepository: MembersRepository) : SlackService {
 
     private val slack : Slack = Slack.getInstance()
 
@@ -38,16 +44,20 @@ class SlackServiceImpl(val membersRepository: MembersRepository) : SlackService 
 
     private fun getUsersFromSlack() {
         val documents: MutableList<Member> = emptyList<Member>().toMutableList()
-
-        slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members.map {
+        val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
+            throw CustomException(PERSON_NOT_FOUND)
+        users.map {
             val member = Member(it.profile.email, it.id)
             documents.add(member)
+            mongoTemplate.upsert(Query().addCriteria(Criteria.where("email").`is`(member.email)),
+                Update().set("slackId", member.slackId), "slackIds")
         }
-        membersRepository.saveAll(documents)
+
+
     }
 
     private fun getUserId(email: String) : String =
-        membersRepository.getByEmail(email).id
+        membersRepository.getByEmail(email)?.slackId?: throw CustomException(PERSON_NOT_FOUND)
 
     private fun postMessage(channel: String, messageText: String) = slack.methods(token)
         .chatPostMessage(ChatPostMessageRequest.builder()
