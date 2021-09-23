@@ -2,7 +2,6 @@ package com.dunice.nerd_kotlin.common.services
 
 import com.dunice.nerd_kotlin.common.Member
 import com.dunice.nerd_kotlin.common.MembersRepository
-
 import com.dunice.nerd_kotlin.common.errors.CustomException
 import com.dunice.nerd_kotlin.common.errors.PERSON_NOT_FOUND
 import com.dunice.nerd_kotlin.common.errors.SlackEmailNotFoundException
@@ -68,8 +67,6 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate, val membersRepository: 
             mongoTemplate.upsert(Query().addCriteria(Criteria.where("email").`is`(member.email)),
                 Update().set("slackId", member.slackId), "slackIds")
         }
-
-
     }
 
     private fun postMessage(channel: String, messageText: String) = slack.methods(token)
@@ -82,7 +79,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate, val membersRepository: 
     private fun generateMessage(info : ExamDTO, names: Map<String, Member>) {
         names.forEach{
             val messagePart = if (it.key == info.studentEmail) "${names[info.interviewerEmail]?.fullName} ${names[info.assistantEmail]?.fullName?: ""}"
-            else "${names[info.studentEmail]?.fullName}"
+                else "${names[info.studentEmail]?.fullName}"
             val message = "Привет, ${it.value.fullName.split(" ")[0]}! ${String(Character.toChars(0x1F44B))}\n" +
                 "Твое расписание матрицы на эту неделю:\n" +
                 "${getCyrillicDayOfWeek(info.datetime.dayOfWeek)} (${info.datetime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}):" +
@@ -92,5 +89,4 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate, val membersRepository: 
                 postMessage(it.value.slackId, message)
             }
         }
-//
 }
