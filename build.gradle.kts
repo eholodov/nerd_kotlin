@@ -49,6 +49,10 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation
 	implementation("org.springframework.boot:spring-boot-starter-validation:2.5.4")
 
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation
+	implementation("org.springframework.boot:spring-boot-starter-validation:2.5.4")
+
+
 }
 
 tasks.withType<KotlinCompile> {
