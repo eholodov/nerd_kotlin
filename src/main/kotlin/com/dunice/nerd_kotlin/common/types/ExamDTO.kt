@@ -12,6 +12,7 @@ data class ExamDTO(
     @field:NotNull(message = BLANK_DATETIME)
     val datetime: OffsetDateTime,
 
+    @field:Pattern(regexp = "[a-z]+(@dunice\\.net)", message = EMAIL_NOT_VALID_MESSAGE)
     @field:NotBlank(message = BLANK_NAME)
     val studentEmail: String,
 
@@ -22,11 +23,9 @@ data class ExamDTO(
     val room: String,
 
     @field:Pattern(regexp = "[a-z]+(@dunice\\.net)", message = EMAIL_NOT_VALID_MESSAGE)
-    @field:NotBlank(message = BLANK_EMAIL)
-    val email: String,
-
     @field:NotBlank(message = BLANK_INTERVIEWER)
     val interviewerEmail: String,
 
+    @field:Pattern(regexp = "[a-z]+(@dunice\\.net)", message = EMAIL_NOT_VALID_MESSAGE)
     val assistantEmail: String?
 )
