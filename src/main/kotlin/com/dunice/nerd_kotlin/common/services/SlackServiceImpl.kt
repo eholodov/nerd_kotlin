@@ -25,10 +25,10 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate, val membersRepository: 
     private val slack : Slack = Slack.getInstance()
 
     @Value("\${slack.web.api.token}")
-    private var token : String = ""
+    lateinit var token : String
 
     @Value("\${slack.web.api.teamId}")
-    private var teamId : String = ""
+    lateinit var teamId : String
 
     @Value("#{\${slackGoogleDocAliases}}")
     lateinit var slackGoogleDocAliases : Map<String, String>
@@ -48,8 +48,8 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate, val membersRepository: 
     }
 
     private fun getNamesByEmail(vararg emails: String) : Map<String, Member> {
-        return emails.map {
-            membersRepository.findById(it).orElseGet {
+        return emails.filter { it != "" }.map {
+            membersRepository.findOneByEmail(it).orElseGet {
                 this.getUsersFromSlack()
                 return@orElseGet membersRepository.findOneByEmail(it).orElseThrow { SlackEmailNotFoundException(it) }
             }
@@ -60,12 +60,13 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate, val membersRepository: 
         val documents: MutableList<Member> = emptyList<Member>().toMutableList()
         val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
             throw CustomException(PERSON_NOT_FOUND)
+
         users.filter{!it.isDeleted}.map {
-            val member = Member(it.profile.email, it.id,
-                ((if (slackGoogleDocAliases.containsKey(it.realName)) slackGoogleDocAliases[it.realName] else it.realName)!!))
+            val name = if (slackGoogleDocAliases.containsKey(it.realName)) slackGoogleDocAliases[it.realName]!! else it.realName
+            val member = Member(it.profile.email, it.id, name)
             documents.add(member)
             mongoTemplate.upsert(Query().addCriteria(Criteria.where("email").`is`(member.email)),
-                Update().set("slackId", member.slackId), "slackIds")
+                Update().set("slackId", member.slackId).set("fullName", member.fullName), "slackIds")
         }
     }
 

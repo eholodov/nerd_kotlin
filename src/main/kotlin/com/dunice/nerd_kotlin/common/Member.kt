@@ -12,6 +12,7 @@ class Member(
     @Indexed(unique = true)
     var slackId: String,
 
+    @Indexed
     var fullName: String
 ) {
     @Id
