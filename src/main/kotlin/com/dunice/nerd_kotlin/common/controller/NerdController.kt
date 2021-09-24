@@ -8,5 +8,5 @@ import org.springframework.web.bind.annotation.RequestMapping
 interface NerdController {
 
     @PostMapping
-    public fun getDataFromRiseUp(examDataDTO: ExamDTO)
+    public fun getDataFromRiseUp(examDataDTO: List<ExamDTO>)
 }

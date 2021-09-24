@@ -4,6 +4,6 @@ import com.dunice.nerd_kotlin.common.types.ExamDTO
 
 interface SlackService {
 
-    public fun sendMessage(examDataDTO: ExamDTO)
+    public fun processRequest(examDataDTO: List<ExamDTO>)
 
 }

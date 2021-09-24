@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @Validated
 class NerdControllerImpl (val service: NerdService) : NerdController {
 
-    override fun getDataFromRiseUp(@RequestBody examDataDTO: ExamDTO) {
+    override fun getDataFromRiseUp(@RequestBody examDataDTO: List<ExamDTO>) {
         service.getDataFromRiseUp(examDataDTO)
     }
 }

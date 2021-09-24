@@ -52,6 +52,11 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation
 	implementation("org.springframework.boot:spring-boot-starter-validation:2.5.4")
 
+	// https://mvnrepository.com/artifact/com.slack.api/slack-api-model
+	implementation("com.slack.api:slack-api-model:1.12.1")
+
+	implementation("com.slack.api:slack-api-model-kotlin-extension:1.12.1")
+	implementation("com.slack.api:slack-api-client-kotlin-extension:1.12.1")
 
 }
 
