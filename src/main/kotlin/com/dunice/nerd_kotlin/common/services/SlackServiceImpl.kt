@@ -25,8 +25,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import java.time.Duration
-import java.time.Instant
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -86,13 +85,10 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
 
     private fun sendInterviewerOrAssistantMessage() {}
 
-    private fun sendRemainderMessage(remainderDocument: RemainderDocument) {
-        //println(Calendar.getInstance().getTime(remainderDocument.dateTime))
-        Timer(false).schedule(time = Date.from(remainderDocument.dateTime)) {
-            println("🤢this is schedule task🤢")
-            println()
+    private fun sendRemainderMessage(remainderDocument: RemainderDocument) =
+        Timer(false).schedule(delay = remainderDocument.dateTime.toEpochMilli() - Instant.now().toEpochMilli()) {
+            generateRemainderMessage(remainderDocument)
         }
-    }
 
     private fun getNamesByEmail(vararg emails: String) : Map<String, MemberDocument> {
         return emails.filter { it != "" }.map {
@@ -133,7 +129,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
             val studentMessage = "Привет, ${names[info.studentEmail]?.fullName?.split(" ")?.get(0)}! ${String(Character.toChars(0x1F44B))}\n" +
                 "Твое расписание матрицы на эту неделю:\n" +
                 "${getCyrillicDayOfWeek(info.datetime.dayOfWeek)} (${info.datetime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}): " +
-                "${info.subject} ${info.datetime.format(DateTimeFormatter.ofPattern("HH:mm"))} " +
+                "${info.subject} ${info.datetime.atZoneSameInstant(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("HH:mm"))} " +
                 "$messagePart ${info.room}"
 
                 //postMessage(it.value.slackId, message)
@@ -145,7 +141,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
             val messageText = buildString {
                 append("Привет, ")
                 append(membersRepository.findOneByEmail(it.key).get().fullName.split(" ")[0])
-                append("! :wave::skin-tone-2: \n ")
+                append("! ${String(Character.toChars(0x1F44B))} \n ")
                 append("Твое расписание матрицы на эту неделю: \n ")
                 val groupedByWeekDay = it.value.groupBy { it.datetime.dayOfWeek }
                 groupedByWeekDay.forEach {
@@ -166,10 +162,33 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
         }
     }
 
+    private fun generateRemainderMessage(remainderDocument: RemainderDocument) {
+        val names = getNamesByEmail(remainderDocument.studentEmail, remainderDocument.interviewerEmail, remainderDocument.assistantEmail?: "")
+        names.forEach{
+            val messageText = buildString {
+                append("Привет, ")
+                append(it.value.fullName.split(" ")[0])
+                append("! ${String(Character.toChars(0x1F44B))}\n ")
+                append("Через 10 минут у тебя матрица \n ")
+                append(
+                    ">📚 ${remainderDocument.subject} " +
+                            ZonedDateTime.ofInstant(remainderDocument.dateTime, ZoneId.of("Europe/Moscow"))
+                                .format(DateTimeFormatter.ofPattern("HH:mm")) +
+                            " ${if (it.key.equals(remainderDocument.studentEmail)) 
+                                "${names[remainderDocument.interviewerEmail]?.fullName} ${names[remainderDocument.assistantEmail]?.fullName?: ""}"
+                            else "${names[remainderDocument.studentEmail]?.fullName}"} ${remainderDocument.room}"
+                )
+            }
+            println(messageText)
+            //postMessage(it.value.slackId, messageText)
+        }
+
+    }
+
     private fun scheduleRemainders() {
         val todayExams = mongoTemplate.find(
             Query().addCriteria(
-                Criteria.where("dateTime").gt(Instant.now()).lte(Instant.now().plus(24L, ChronoUnit.HOURS)))
+                Criteria.where("dateTime").gt(Instant.now()).lt(Instant.now().plus(24L, ChronoUnit.HOURS)))
             , RemainderDocument::class.java,"remainders")
         todayExams.forEach {
             sendRemainderMessage(it)
