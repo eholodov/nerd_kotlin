@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping
 @Validated
-class NerdControllerImpl (val service: NerdService) : NerdController {
+class MatrixScheduleControllerImpl (val service: NerdService) : MatrixScheduleController {
 
     override fun getDataFromRiseUp(@RequestBody examDataDTO: List<ExamDTO>) {
         service.getDataFromRiseUp(examDataDTO)

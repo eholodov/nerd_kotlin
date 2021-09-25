@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 
 @RequestMapping
-interface NerdController {
+interface MatrixScheduleController {
 
     @PostMapping
     public fun getDataFromRiseUp(examDataDTO: List<ExamDTO>)

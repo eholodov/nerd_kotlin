@@ -8,33 +8,21 @@ import com.dunice.nerd_kotlin.common.errors.CustomException
 import com.dunice.nerd_kotlin.common.errors.PERSON_NOT_FOUND
 import com.dunice.nerd_kotlin.common.errors.SlackEmailNotFoundException
 import com.dunice.nerd_kotlin.common.types.ExamDTO
-import com.dunice.nerd_kotlin.common.utils.getCyrillicDayOfWeek
 import com.slack.api.Slack
 import com.slack.api.methods.kotlin_extension.request.chat.blocks
 import com.slack.api.methods.request.chat.ChatPostMessageRequest
 import com.slack.api.methods.request.users.UsersListRequest
-import com.slack.api.model.block.Blocks
-import com.slack.api.model.block.Blocks.asBlocks
-import com.slack.api.model.block.Blocks.section
-import com.slack.api.model.block.composition.BlockCompositions.markdownText
-import com.slack.api.model.block.composition.MarkdownTextObject
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.*
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.*
-import java.util.concurrent.Executors
 import javax.annotation.PostConstruct
 import kotlin.concurrent.schedule
-import kotlin.concurrent.thread
-import kotlin.concurrent.timer
-import kotlin.concurrent.timerTask
 
 @Service
 class SlackServiceImpl(val mongoTemplate: MongoTemplate,
@@ -63,34 +51,13 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
         val entities = examDataDTO.map { RemainderDocument(dateTime = it.datetime.minusMinutes(10L).toInstant(),
         assistantEmail = it.assistantEmail, interviewerEmail = it.interviewerEmail, studentEmail = it.studentEmail, subject = it.subject, room = it.room) }
         remaindersRepository.saveAll(entities)
-        val cardsGroupedByInterviewerAndAssistant = examDataDTO.groupBy(ExamDTO::interviewerEmail)
-            .mapValues { it.value.toMutableList() }.toMutableMap()
-        cardsGroupedByInterviewerAndAssistant.values.forEach {
-                it.forEach { dto ->
-                if (!dto.assistantEmail.isNullOrBlank()) {
-                    cardsGroupedByInterviewerAndAssistant[dto.assistantEmail]?.add(dto)
-                }
-            }
-        }
-        examDataDTO.forEach{sendStudentMessage(it)}
-        scheduleRemainders()
     }
 
-    private fun sendStudentMessage(examDTO: ExamDTO) {
-        this.generateStudentMessage(
-            examDTO,
-            this.getNamesByEmail(examDTO.studentEmail, examDTO.interviewerEmail, examDTO.assistantEmail.orEmpty())
-        )
+    override fun sendMessage(email: String, message: String) {
+        this.postMessage(membersRepository.findOneByEmail(email).get().slackId, message)
     }
 
-    private fun sendInterviewerOrAssistantMessage() {}
-
-    private fun sendRemainderMessage(remainderDocument: RemainderDocument) =
-        Timer(false).schedule(delay = remainderDocument.dateTime.toEpochMilli() - Instant.now().toEpochMilli()) {
-            generateRemainderMessage(remainderDocument)
-        }
-
-    private fun getNamesByEmail(vararg emails: String) : Map<String, MemberDocument> {
+    override fun getNamesByEmail(vararg emails: String) : Map<String, MemberDocument> {
         return emails.filter { it != "" }.map {
             membersRepository.findOneByEmail(it).orElseGet {
                 this.getUsersFromSlack()
@@ -103,7 +70,6 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
         val documents: MutableList<MemberDocument> = emptyList<MemberDocument>().toMutableList()
         val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
             throw CustomException(PERSON_NOT_FOUND)
-
         users.filter{!it.isDeleted}.map {
             val name = if (slackGoogleDocAliases.containsKey(it.realName)) slackGoogleDocAliases[it.realName]!! else it.realName
             val member = MemberDocument(it.profile.email, it.id, name)
@@ -123,75 +89,4 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
             }
             .build()
         )
-
-    private fun generateStudentMessage(info : ExamDTO, names: Map<String, MemberDocument>) {
-            val messagePart = "${names[info.interviewerEmail]?.fullName} ${names[info.assistantEmail]?.fullName?: ""}"
-            val studentMessage = "Привет, ${names[info.studentEmail]?.fullName?.split(" ")?.get(0)}! ${String(Character.toChars(0x1F44B))}\n" +
-                "Твое расписание матрицы на эту неделю:\n" +
-                "${getCyrillicDayOfWeek(info.datetime.dayOfWeek)} (${info.datetime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}): " +
-                "${info.subject} ${info.datetime.atZoneSameInstant(ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("HH:mm"))} " +
-                "$messagePart ${info.room}"
-
-                //postMessage(it.value.slackId, message)
-            println(studentMessage)
-        }
-
-    private fun generateInterviewerOrAssistantMessage(cards : MutableMap<String, MutableList<ExamDTO>>) {
-        cards.forEach {
-            val messageText = buildString {
-                append("Привет, ")
-                append(membersRepository.findOneByEmail(it.key).get().fullName.split(" ")[0])
-                append("! ${String(Character.toChars(0x1F44B))} \n ")
-                append("Твое расписание матрицы на эту неделю: \n ")
-                val groupedByWeekDay = it.value.groupBy { it.datetime.dayOfWeek }
-                groupedByWeekDay.forEach {
-                    append("*${getCyrillicDayOfWeek(it.key)} ")
-                    it.value.forEach { interview ->
-                        val names = getNamesByEmail(interview.studentEmail, interview.assistantEmail ?: "")
-                        append(
-                            ">📚 ${interview.subject} ${interview.datetime.format(DateTimeFormatter.ofPattern("HH:mm"))}" +
-                                    " \"${names[interview.studentEmail]?.fullName} "
-                        )
-                        append(if (interview.assistantEmail != null) " ассистент ${names[interview.assistantEmail]?.fullName}" else "")
-                        append(interview.room)
-                    }
-                }
-
-            }
-            sendInterviewerOrAssistantMessage()
-        }
     }
-
-    private fun generateRemainderMessage(remainderDocument: RemainderDocument) {
-        val names = getNamesByEmail(remainderDocument.studentEmail, remainderDocument.interviewerEmail, remainderDocument.assistantEmail?: "")
-        names.forEach{
-            val messageText = buildString {
-                append("Привет, ")
-                append(it.value.fullName.split(" ")[0])
-                append("! ${String(Character.toChars(0x1F44B))}\n ")
-                append("Через 10 минут у тебя матрица \n ")
-                append(
-                    ">📚 ${remainderDocument.subject} " +
-                            ZonedDateTime.ofInstant(remainderDocument.dateTime, ZoneId.of("Europe/Moscow"))
-                                .format(DateTimeFormatter.ofPattern("HH:mm")) +
-                            " ${if (it.key.equals(remainderDocument.studentEmail)) 
-                                "${names[remainderDocument.interviewerEmail]?.fullName} ${names[remainderDocument.assistantEmail]?.fullName?: ""}"
-                            else "${names[remainderDocument.studentEmail]?.fullName}"} ${remainderDocument.room}"
-                )
-            }
-            println(messageText)
-            //postMessage(it.value.slackId, messageText)
-        }
-
-    }
-
-    private fun scheduleRemainders() {
-        val todayExams = mongoTemplate.find(
-            Query().addCriteria(
-                Criteria.where("dateTime").gt(Instant.now()).lt(Instant.now().plus(24L, ChronoUnit.HOURS)))
-            , RemainderDocument::class.java,"remainders")
-        todayExams.forEach {
-            sendRemainderMessage(it)
-        }
-    }
-}
