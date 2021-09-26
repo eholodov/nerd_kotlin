@@ -27,7 +27,8 @@ import kotlin.concurrent.schedule
 @Service
 class SlackServiceImpl(val mongoTemplate: MongoTemplate,
                        val membersRepository: MembersRepository,
-                       val remaindersRepository: RemaindersRepository)
+                       val remaindersRepository: RemaindersRepository,
+                        val messageGenerationService: MessageGenerationService)
     : SlackService {
 
     private val slack : Slack = Slack.getInstance()
@@ -51,6 +52,8 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
         val entities = examDataDTO.map { RemainderDocument(dateTime = it.datetime.minusMinutes(10L).toInstant(),
         assistantEmail = it.assistantEmail, interviewerEmail = it.interviewerEmail, studentEmail = it.studentEmail, subject = it.subject, room = it.room) }
         remaindersRepository.saveAll(entities)
+        messageGenerationService.generateInterviewerOrAssistantMessage(examDataDTO)
+        examDataDTO.forEach{messageGenerationService.generateStudentMessage(it)}
     }
 
     override fun sendMessage(email: String, message: String) {

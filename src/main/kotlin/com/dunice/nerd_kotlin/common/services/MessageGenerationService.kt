@@ -12,4 +12,6 @@ interface MessageGenerationService {
 
     fun generateRemainderMessage(remainderDocument: RemainderDocument)
 
+    fun generateRemainderDescription(remainderDocument: RemainderDocument) : String
+
 }

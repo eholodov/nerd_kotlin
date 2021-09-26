@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 @Service
 class MessageGenerationServiceImpl(val slackService: SlackService, val membersRepository: MembersRepository) : MessageGenerationService {
@@ -82,5 +83,13 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
             }
             slackService.sendMessage(it.key, messageText)
         }
+    }
+
+    override fun generateRemainderDescription(remainderDocument: RemainderDocument) : String {
+        val names = slackService.getNamesByEmail(remainderDocument.studentEmail, remainderDocument.interviewerEmail, remainderDocument.assistantEmail?: "")
+        return "Матрица для ${names[remainderDocument.studentEmail]?.fullName} по предмету ${remainderDocument.subject} запланирована на " +
+                "${ZonedDateTime.ofInstant(remainderDocument.dateTime.plus(10L, ChronoUnit.MINUTES),
+            ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("HH:mm"))} в комнате ${remainderDocument.subject}\n" +
+                "Принимающие: ${names[remainderDocument.interviewerEmail]?.fullName} ${names[remainderDocument.assistantEmail]?.fullName?: ""}"
     }
 }
