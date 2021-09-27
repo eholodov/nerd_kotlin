@@ -4,9 +4,9 @@ import com.dunice.nerd_kotlin.common.types.ExamDTO
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 
-@RequestMapping
+@RequestMapping("/matrix-schedule")
 interface MatrixScheduleController {
 
-    @PostMapping
+    @PostMapping("/send-schedule")
     public fun getDataFromRiseUp(examDataDTO: List<ExamDTO>)
 }

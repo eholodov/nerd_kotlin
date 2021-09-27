@@ -4,5 +4,5 @@ import com.dunice.nerd_kotlin.common.types.ExamDTO
 
 interface NerdService {
 
-    public fun getDataFromRiseUp(examDataDTO: List<ExamDTO>)
+    public fun getDataFromRiseUp(examDTO: List<ExamDTO>)
 }

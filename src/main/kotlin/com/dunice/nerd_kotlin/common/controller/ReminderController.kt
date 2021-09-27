@@ -4,16 +4,16 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 
-@RequestMapping
-interface RemainderController {
+@RequestMapping("/reminders")
+interface ReminderController {
 
-    @PostMapping
+    @PostMapping("refresh_crons")
     fun refreshCrons()
 
-    @PostMapping
+    @PostMapping("start_crons")
     fun startCrons()
 
-    @GetMapping
+    @GetMapping("get_crons")
     fun getCurrentCrons()
 
 }

@@ -7,8 +7,6 @@ import java.util.*
 
 interface SlackService {
 
-    fun processRequest(examDataDTO: List<ExamDTO>)
-
     fun getNamesByEmail(vararg emails: String): Map<String, MemberDocument>
 
     fun sendMessage(email: String, message: String)

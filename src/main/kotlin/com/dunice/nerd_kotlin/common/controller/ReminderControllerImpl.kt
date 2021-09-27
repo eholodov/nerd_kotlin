@@ -1,14 +1,12 @@
 package com.dunice.nerd_kotlin.common.controller
 
 import com.dunice.nerd_kotlin.common.services.RemaindersService
-import com.dunice.nerd_kotlin.common.services.remainder_service.RemaindersService
-import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping
-class RemainderControllerImpl(val remaindersService: RemaindersService) : RemainderController {
+@RequestMapping("/reminders")
+class ReminderControllerImpl(val remaindersService: RemaindersService) : ReminderController {
 
     override fun refreshCrons() {
         remaindersService.refreshCrons()

@@ -20,8 +20,8 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
             names[info.studentEmail]?.fullName?.split(" ")?.get(0)
         }! ${String(Character.toChars(0x1F44B))}\n" +
                 "Твое расписание матрицы на эту неделю:\n" +
-                "${getCyrillicDayOfWeek(info.datetime.dayOfWeek)} (${info.datetime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}): " +
-                "${info.subject} ${
+                "${getCyrillicDayOfWeek(info.datetime.dayOfWeek)} (${info.datetime.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))}): \n" +
+                ">\uD83D\uDCDA ${info.subject} ${
                     info.datetime.atZoneSameInstant(ZoneId.of("Europe/Moscow"))
                         .format(DateTimeFormatter.ofPattern("HH:mm"))
                 } " +
@@ -47,15 +47,16 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
                 append("Твое расписание матрицы на эту неделю: \n ")
                 val groupedByWeekDay = it.value.groupBy { it.datetime.dayOfWeek }
                 groupedByWeekDay.forEach {
-                    append("*${getCyrillicDayOfWeek(it.key)} ")
+                    append("*${getCyrillicDayOfWeek(it.key)} ${ZonedDateTime.ofInstant(it.value[0].datetime.toInstant(), ZoneId.of("Europe/Moscow"))
+                        .format(DateTimeFormatter.ofPattern("(dd.MM.yyyy)"))}\n")
                     it.value.forEach { interview ->
                         val names = slackService.getNamesByEmail(interview.studentEmail, interview.assistantEmail ?: "")
                         append(
                             ">📚 ${interview.subject} ${interview.datetime.format(DateTimeFormatter.ofPattern("HH:mm"))}" +
                                     " \"${names[interview.studentEmail]?.fullName} "
                         )
-                        append(if (interview.assistantEmail != null) " ассистент ${names[interview.assistantEmail]?.fullName}" else "")
-                        append(interview.room)
+                        append(if (interview.assistantEmail != null) "ассистент ${names[interview.assistantEmail]?.fullName} " else "")
+                        append("${ interview.room } \n")
                     }
                 }
 
@@ -89,7 +90,7 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
         val names = slackService.getNamesByEmail(remainderDocument.studentEmail, remainderDocument.interviewerEmail, remainderDocument.assistantEmail?: "")
         return "Матрица для ${names[remainderDocument.studentEmail]?.fullName} по предмету ${remainderDocument.subject} запланирована на " +
                 "${ZonedDateTime.ofInstant(remainderDocument.dateTime.plus(10L, ChronoUnit.MINUTES),
-            ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("HH:mm"))} в комнате ${remainderDocument.subject}\n" +
+            ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))} в комнате ${remainderDocument.subject}\n" +
                 "Принимающие: ${names[remainderDocument.interviewerEmail]?.fullName} ${names[remainderDocument.assistantEmail]?.fullName?: ""}"
     }
 }
