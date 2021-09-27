@@ -32,36 +32,42 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
     override fun generateInterviewerOrAssistantMessage(examDataDTO: List<ExamDTO>) {
         val cardsGroupedByInterviewerAndAssistant = examDataDTO.groupBy(ExamDTO::interviewerEmail)
             .mapValues { it.value.toMutableList() }.toMutableMap()
-        cardsGroupedByInterviewerAndAssistant.values.forEach {
-            it.forEach { dto ->
-                if (!dto.assistantEmail.isNullOrBlank()) {
-                    cardsGroupedByInterviewerAndAssistant[dto.assistantEmail]?.add(dto)
+        examDataDTO.forEach {
+             dto ->
+                if (dto.assistantEmail != null && dto.assistantEmail != "") {
+                    if (cardsGroupedByInterviewerAndAssistant.containsKey(dto.assistantEmail)) {
+                        cardsGroupedByInterviewerAndAssistant[dto.assistantEmail]!!.add(dto)
+                    }
+                    else {
+                        cardsGroupedByInterviewerAndAssistant[dto.assistantEmail] = listOf(dto).toMutableList()
+                    }
                 }
-            }
         }
-        cardsGroupedByInterviewerAndAssistant.forEach {
+        cardsGroupedByInterviewerAndAssistant.forEach { groupedCard ->
             val messageText = buildString {
                 append("Привет, ")
-                append(membersRepository.findOneByEmail(it.key).get().fullName.split(" ")[0])
+                append(membersRepository.findOneByEmail(groupedCard.key).get().fullName.split(" ")[0])
                 append("! ${String(Character.toChars(0x1F44B))} \n ")
                 append("Твое расписание матрицы на эту неделю: \n ")
-                val groupedByWeekDay = it.value.groupBy { it.datetime.dayOfWeek }
+                groupedCard.value.sortBy { it.datetime }
+                val groupedByWeekDay = groupedCard.value.groupBy { it.datetime.dayOfWeek }
                 groupedByWeekDay.forEach {
                     append("*${getCyrillicDayOfWeek(it.key)} ${ZonedDateTime.ofInstant(it.value[0].datetime.toInstant(), ZoneId.of("Europe/Moscow"))
                         .format(DateTimeFormatter.ofPattern("(dd.MM.yyyy)"))}*\n")
                     it.value.forEach { interview ->
                         val names = slackService.getNamesByEmail(interview.studentEmail, interview.assistantEmail ?: "")
                         append(
-                            ">📚 ${interview.subject} ${interview.datetime.format(DateTimeFormatter.ofPattern("HH:mm"))}" +
+                            ">📚 ${interview.subject} ${ZonedDateTime.ofInstant(interview.datetime.toInstant(),
+                                ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("HH:mm"))}" +
                                     " ${names[interview.studentEmail]?.fullName} "
                         )
-                        append(if (interview.assistantEmail != null) "ассистент ${names[interview.assistantEmail]?.fullName} " else "")
+                        append(if (interview.assistantEmail != null && interview.assistantEmail != groupedCard.key) "ассистент ${names[interview.assistantEmail]?.fullName} " else "")
                         append("${ interview.room } \n")
                     }
                 }
 
             }
-            slackService.sendMessage(it.key ,messageText)
+            slackService.sendMessage(groupedCard.key ,messageText)
         }
     }
 
@@ -75,7 +81,7 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
                 append("Через 10 минут у тебя матрица: \n")
                 append(
                     ">📚 ${remainderDocument.subject} " +
-                            ZonedDateTime.ofInstant(remainderDocument.dateTime, ZoneId.of("Europe/Moscow"))
+                            ZonedDateTime.ofInstant(remainderDocument.dateTime.plus(10L, ChronoUnit.MINUTES), ZoneId.of("Europe/Moscow"))
                                 .format(DateTimeFormatter.ofPattern("HH:mm")) +
                             " ${if (it.key.equals(remainderDocument.studentEmail))
                                 "${names[remainderDocument.interviewerEmail]?.fullName} ${names[remainderDocument.assistantEmail]?.fullName?: ""}"

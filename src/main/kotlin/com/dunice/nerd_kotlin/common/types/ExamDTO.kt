@@ -13,7 +13,7 @@ data class ExamDTO(
     val datetime: OffsetDateTime,
 
     @field:Pattern(regexp = "[a-z]+(@dunice\\.net)", message = EMAIL_NOT_VALID_MESSAGE)
-    @field:NotBlank(message = BLANK_NAME)
+    @field:NotBlank(message = BLANK_EMAIL)
     val studentEmail: String,
 
     @field:NotBlank(message = BLANK_SUBJECT)
