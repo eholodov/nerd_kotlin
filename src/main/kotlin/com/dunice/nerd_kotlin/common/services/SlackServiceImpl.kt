@@ -80,6 +80,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
                     markdownText(messageText)
                 }
             }
+            .text(messageText)
             .build()
         )
     }

@@ -48,12 +48,12 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
                 val groupedByWeekDay = it.value.groupBy { it.datetime.dayOfWeek }
                 groupedByWeekDay.forEach {
                     append("*${getCyrillicDayOfWeek(it.key)} ${ZonedDateTime.ofInstant(it.value[0].datetime.toInstant(), ZoneId.of("Europe/Moscow"))
-                        .format(DateTimeFormatter.ofPattern("(dd.MM.yyyy)"))}\n")
+                        .format(DateTimeFormatter.ofPattern("(dd.MM.yyyy)"))}*\n")
                     it.value.forEach { interview ->
                         val names = slackService.getNamesByEmail(interview.studentEmail, interview.assistantEmail ?: "")
                         append(
                             ">📚 ${interview.subject} ${interview.datetime.format(DateTimeFormatter.ofPattern("HH:mm"))}" +
-                                    " \"${names[interview.studentEmail]?.fullName} "
+                                    " ${names[interview.studentEmail]?.fullName} "
                         )
                         append(if (interview.assistantEmail != null) "ассистент ${names[interview.assistantEmail]?.fullName} " else "")
                         append("${ interview.room } \n")
@@ -72,7 +72,7 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
                 append("Привет, ")
                 append(it.value.fullName.split(" ")[0])
                 append("! ${String(Character.toChars(0x1F44B))}\n ")
-                append("Через 10 минут у тебя матрица \n ")
+                append("Через 10 минут у тебя матрица: \n")
                 append(
                     ">📚 ${remainderDocument.subject} " +
                             ZonedDateTime.ofInstant(remainderDocument.dateTime, ZoneId.of("Europe/Moscow"))
