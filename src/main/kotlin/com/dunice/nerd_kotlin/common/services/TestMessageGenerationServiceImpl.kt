@@ -94,6 +94,7 @@ class TestMessageGenerationServiceImpl(val slackService: SlackService, val membe
                 )
             }
             println(messageText)
+
         }
     }
 

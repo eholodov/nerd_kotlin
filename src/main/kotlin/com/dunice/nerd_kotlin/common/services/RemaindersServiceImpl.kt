@@ -38,9 +38,10 @@ class RemaindersServiceImpl(
             Criteria.where("dateTime").gt(currentDate.toInstant())
                 .lt(todayDate.toInstant())
         val todayExams = mongoTemplate.find(
-            Query().addCriteria(temporalCriteria), RemainderDocument::class.java,"remainders")
+            Query().addCriteria(temporalCriteria).addCriteria(Criteria.where("isSent").`is`(false))
+            , RemainderDocument::class.java,"remainders")
         todayExams.forEach {
-            val task = RemainderTask(messageGenerationService, it)
+            val task = RemainderTask(messageGenerationService, mongoTemplate, it)
             scheduledTasks.add(task)
             Timer(false).schedule(task, it.dateTime.toEpochMilli() - Instant.now().toEpochMilli())
         }

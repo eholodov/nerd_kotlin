@@ -16,6 +16,7 @@ import javax.validation.constraints.Pattern
 @Document(collection = "remainders")
 class RemainderDocument (
 
+
     var dateTime: Instant,
 
     var studentEmail: String,
@@ -31,4 +32,6 @@ class RemainderDocument (
 
     @Id
     lateinit var id: String
+
+    var isSent : Boolean = false
 }
