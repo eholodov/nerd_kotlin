@@ -2,6 +2,7 @@ package com.dunice.nerd_kotlin.common.services
 
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.common.db.RemainderDocument
+import com.dunice.nerd_kotlin.common.errors.CustomException
 import com.dunice.nerd_kotlin.common.types.ExamDTO
 import com.dunice.nerd_kotlin.common.utils.getCyrillicDayOfWeek
 import org.springframework.context.annotation.Profile
@@ -48,7 +49,7 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
         cardsGroupedByInterviewerAndAssistant.forEach { groupedCard ->
             val messageText = buildString {
                 append("Привет, ")
-                append(membersRepository.findOneByEmail(groupedCard.key).get().fullName.split(" ")[0])
+                append(membersRepository.findOneByEmail(groupedCard.key).orElseThrow{ CustomException("Interviewer with email \"${groupedCard.key}\" is not found") }.fullName.split(" ")[0])
                 append("! ${String(Character.toChars(0x1F44B))} \n ")
                 append("Твое расписание матрицы на эту неделю: \n ")
                 groupedCard.value.sortBy { it.datetime }
