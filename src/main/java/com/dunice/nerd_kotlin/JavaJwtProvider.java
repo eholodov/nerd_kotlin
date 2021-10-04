@@ -1,14 +1,24 @@
-package com.dunice.nerd_kotlin.common.jwt;
+package com.dunice.nerd_kotlin;
 
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 
 @Component
 public class JavaJwtProvider {
 
     @Value("${jwt.secret}")
     private String jwtSecret;
+
+    @PostConstruct
+    private void init() {
+        JwtBuilder builder = Jwts.builder()
+                .setSubject("1234")
+                .signWith(SignatureAlgorithm.HS512, jwtSecret);
+        System.out.println(builder.compact());
+    }
 
     public boolean validateToken(String token) {
         try {

@@ -85,6 +85,10 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl
 	implementation("com.sun.xml.bind:jaxb-impl:3.0.1")
 
+
+	// https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+	implementation("javax.xml.bind:jaxb-api:2.3.1")
+
 	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security
 	implementation("org.springframework.boot:spring-boot-starter-security:2.5.4")
 
