@@ -32,7 +32,6 @@ class JwtFilter(val jwtProvider: JavaJwtProvider) : OncePerRequestFilter() {
             val authorities: MutableList<GrantedAuthority> = emptyList<GrantedAuthority>().toMutableList()
             authorities.add(GrantedAuthority { "Permitted" })
             val auth = UsernamePasswordAuthenticationToken(true, true, authorities)
-            auth.isAuthenticated = true
             context.authentication = auth
 
             filterChain.doFilter(request, response)

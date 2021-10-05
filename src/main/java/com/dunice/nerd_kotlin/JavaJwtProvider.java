@@ -15,7 +15,7 @@ public class JavaJwtProvider {
     @PostConstruct
     private void init() {
         JwtBuilder builder = Jwts.builder()
-                .setSubject("1234")
+                .setSubject("Nerd")
                 .signWith(SignatureAlgorithm.HS512, jwtSecret);
         System.out.println(builder.compact());
     }
