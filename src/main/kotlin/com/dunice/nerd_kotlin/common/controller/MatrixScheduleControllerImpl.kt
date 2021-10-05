@@ -9,9 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/matrix-schedule")
+@RequestMapping("/matrix-scheduler")
 @Validated
 class MatrixScheduleControllerImpl (val service: NerdService) : MatrixScheduleController {
+
 
     override fun getDataFromRiseUp(@RequestBody examDataDTO: List<ExamDTO>) {
         service.getDataFromRiseUp(examDataDTO)

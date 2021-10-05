@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/reminders")
+@RequestMapping("/matrix-reminder")
 class ReminderControllerImpl(val remaindersService: RemaindersService) : ReminderController {
 
     override fun refreshCrons() {
