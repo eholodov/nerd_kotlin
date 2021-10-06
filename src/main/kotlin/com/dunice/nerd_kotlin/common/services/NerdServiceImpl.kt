@@ -8,8 +8,7 @@ import com.dunice.nerd_kotlin.common.types.ExamDTO
 import org.springframework.stereotype.Service
 
 @Service
-class NerdServiceImpl (val slackService: SlackService,
-                       val remindersRepository: RemaindersRepository,
+class NerdServiceImpl (val remindersRepository: RemaindersRepository,
                        val messageGenerationService: MessageGenerationService,
                        val remaindersService: RemaindersService)
     : NerdService {
@@ -24,8 +23,6 @@ class NerdServiceImpl (val slackService: SlackService,
                 throw CustomException(SAME_EMAILS)
             }
         }
-
-
         messageGenerationService.generateInterviewerOrAssistantMessage(examDTO)
         examDTO.forEach{messageGenerationService.generateStudentMessage(it)}
     }

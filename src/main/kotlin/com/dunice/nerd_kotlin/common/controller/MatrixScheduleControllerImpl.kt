@@ -18,7 +18,7 @@ class MatrixScheduleControllerImpl (val service: NerdService) : MatrixScheduleCo
         service.getDataFromRiseUp(examDataDTO)
     }
 
-    override fun generateReminders(examDataDTO: List<ExamDTO>) {
+    override fun generateReminders(@RequestBody examDataDTO: List<ExamDTO>) {
         service.generateReminders(examDataDTO)
     }
 }
