@@ -107,3 +107,7 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
 	useJUnitPlatform()
 }
+
+tasks.withType<Jar> {
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}

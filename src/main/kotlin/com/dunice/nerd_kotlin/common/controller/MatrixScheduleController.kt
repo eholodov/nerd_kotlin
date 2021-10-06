@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 @RequestMapping("/matrix-scheduler")
 interface MatrixScheduleController {
 
-    @PostMapping
+    @PostMapping("/send-schedule")
     public fun getDataFromRiseUp(examDataDTO: List<ExamDTO>)
+
+    @PostMapping("/generate-reminders")
+    public fun generateReminders(examDataDTO: List<ExamDTO>)
 }

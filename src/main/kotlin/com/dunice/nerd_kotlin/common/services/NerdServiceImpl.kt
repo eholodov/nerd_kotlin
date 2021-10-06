@@ -8,7 +8,11 @@ import com.dunice.nerd_kotlin.common.types.ExamDTO
 import org.springframework.stereotype.Service
 
 @Service
-class NerdServiceImpl (val slackService: SlackService, val remindersRepository: RemaindersRepository, val messageGenerationService: MessageGenerationService) : NerdService {
+class NerdServiceImpl (val slackService: SlackService,
+                       val remindersRepository: RemaindersRepository,
+                       val messageGenerationService: MessageGenerationService,
+                       val remaindersService: RemaindersService)
+    : NerdService {
 
     override fun getDataFromRiseUp(examDTO: List<ExamDTO>) {
         examDTO.toMutableList()
@@ -21,11 +25,17 @@ class NerdServiceImpl (val slackService: SlackService, val remindersRepository: 
             }
         }
 
-        val entities = examDTO.map { RemainderDocument(dateTime = it.datetime.minusMinutes(10L).toInstant(),
-            assistantEmail = it.assistantEmail, interviewerEmail = it.interviewerEmail, studentEmail = it.studentEmail, subject = it.subject, room = it.room) }
-        remindersRepository.saveAll(entities)
+
         messageGenerationService.generateInterviewerOrAssistantMessage(examDTO)
         examDTO.forEach{messageGenerationService.generateStudentMessage(it)}
+    }
+
+    override fun generateReminders(examDataDTO: List<ExamDTO>) {
+        val entities = examDataDTO.map { RemainderDocument(dateTime = it.datetime.minusMinutes(10L).toInstant(),
+            assistantEmail = it.assistantEmail, interviewerEmail = it.interviewerEmail, studentEmail = it.studentEmail, subject = it.subject, room = it.room) }
+        remindersRepository.saveAll(entities)
+        remaindersService.startCrons()
+
     }
 }
 
