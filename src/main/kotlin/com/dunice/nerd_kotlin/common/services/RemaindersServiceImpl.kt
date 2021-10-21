@@ -1,6 +1,7 @@
 package com.dunice.nerd_kotlin.common.services
 
 import com.dunice.nerd_kotlin.common.db.RemainderDocument
+import com.dunice.nerd_kotlin.common.services.generation.MessageGenerationService
 import com.dunice.nerd_kotlin.common.types.RemainderTask
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
@@ -11,9 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.time.temporal.ChronoField
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 @Service
@@ -24,7 +23,7 @@ class RemaindersServiceImpl(
 
     var scheduledTasks = emptyList<RemainderTask>().toMutableList()
 
-    @Scheduled(cron = "0 5 * * *")
+    @Scheduled(cron = "0 0 5 * * *")
     override fun startCrons() {
         val currentDate = OffsetDateTime.now()
         val todayDate = currentDate.with(ChronoField.MILLI_OF_SECOND, 0L)

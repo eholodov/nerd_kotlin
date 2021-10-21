@@ -1,4 +1,4 @@
-package com.dunice.nerd_kotlin.common.services
+package com.dunice.nerd_kotlin.common.services.generation
 
 import com.dunice.nerd_kotlin.common.db.MemberDocument
 import com.dunice.nerd_kotlin.common.db.RemainderDocument

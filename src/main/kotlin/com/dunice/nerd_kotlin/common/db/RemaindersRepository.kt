@@ -7,4 +7,7 @@ import java.time.Instant
 
 @Repository
 interface RemaindersRepository : MongoRepository<RemainderDocument, String>{
+
+    fun findAllByIsSent(isSent : Boolean) : List<RemainderDocument>
+
 }

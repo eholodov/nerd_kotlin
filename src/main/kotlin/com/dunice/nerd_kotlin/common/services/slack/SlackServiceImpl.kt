@@ -1,13 +1,10 @@
-package com.dunice.nerd_kotlin.common.services
+package com.dunice.nerd_kotlin.common.services.slack
 
 import com.dunice.nerd_kotlin.common.db.MemberDocument
 import com.dunice.nerd_kotlin.common.db.MembersRepository
-import com.dunice.nerd_kotlin.common.db.RemainderDocument
-import com.dunice.nerd_kotlin.common.db.RemaindersRepository
 import com.dunice.nerd_kotlin.common.errors.CustomException
 import com.dunice.nerd_kotlin.common.errors.PERSON_NOT_FOUND
 import com.dunice.nerd_kotlin.common.errors.SlackEmailNotFoundException
-import com.dunice.nerd_kotlin.common.types.ExamDTO
 import com.slack.api.Slack
 import com.slack.api.methods.kotlin_extension.request.chat.blocks
 import com.slack.api.methods.request.chat.ChatPostMessageRequest
@@ -18,11 +15,7 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
-import java.time.*
-import java.time.format.DateTimeFormatter
-import java.util.*
 import javax.annotation.PostConstruct
-import kotlin.concurrent.schedule
 
 @Service
 class SlackServiceImpl(val mongoTemplate: MongoTemplate,
@@ -40,6 +33,9 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
     @Value("#{\${slackGoogleDocAliases}}")
     lateinit var slackGoogleDocAliases : Map<String, String>
 
+    @Value("\${slack.web.api.logChannel}")
+    lateinit var slackLogChannel : String
+
     @PostConstruct
     private fun init() {
         this.getUsersFromSlack()
@@ -48,6 +44,14 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
 
     override fun sendMessage(email: String, message: String) {
         this.postMessage(membersRepository.findOneByEmail(email).get().slackId, message)
+    }
+
+    override fun checkEmail(email: String): Boolean {
+        return membersRepository.existsByEmail(email)
+    }
+
+    override fun sendLogMessage(message: String) {
+        this.postMessage(channel = slackLogChannel, messageText = message)
     }
 
     override fun getNamesByEmail(vararg emails: String) : Map<String, MemberDocument> {

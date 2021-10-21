@@ -9,4 +9,6 @@ interface MembersRepository : MongoRepository<MemberDocument, String>{
 
     fun findOneByEmail(email: String) : Optional<MemberDocument>
 
+    fun existsByEmail(email: String) : Boolean
+
 }

@@ -29,11 +29,10 @@ class JwtFilter(val jwtProvider: JavaJwtProvider) : OncePerRequestFilter() {
         } else if (jwtProvider.validateToken(token)) {
 
             val context = SecurityContextHolder.getContext()
-            val authorities: MutableList<GrantedAuthority> = emptyList<GrantedAuthority>().toMutableList()
+            val authorities: MutableList<GrantedAuthority> = mutableListOf()
             authorities.add(GrantedAuthority { "Permitted" })
             val auth = UsernamePasswordAuthenticationToken(true, true, authorities)
             context.authentication = auth
-
             filterChain.doFilter(request, response)
         }
         else {
