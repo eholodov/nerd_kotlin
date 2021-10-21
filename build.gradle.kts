@@ -21,7 +21,6 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	testImplementation("org.springframework.boot:spring-boot-starter-test:2.5.4")
 
-
 	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-mongodb
 	implementation("org.springframework.data:spring-data-mongodb:3.2.4")
 
@@ -94,6 +93,7 @@ dependencies {
 
 	implementation("com.slack.api:slack-api-model-kotlin-extension:1.12.1")
 	implementation("com.slack.api:slack-api-client-kotlin-extension:1.12.1")
+
 
 }
 
