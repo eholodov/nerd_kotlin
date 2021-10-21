@@ -1,6 +1,7 @@
 # Env setup
 
-## Create application-[dev|prod|test].properties and fill
+
+## Create application-[dev|prod].properties and fill
 
 - spring.data.mongodb.uri=mongodb://localhost/nerd
 - service.account.path=
@@ -10,3 +11,4 @@
 - slack.web.api.token=
 - jwt.secret.access=
 - matrix.reminder.notify.before.in.minutes=
+
