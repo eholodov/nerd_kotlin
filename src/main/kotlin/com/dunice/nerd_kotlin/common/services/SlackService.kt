@@ -1,24 +1,13 @@
 package com.dunice.nerd_kotlin.common.services
 
-import com.slack.api.Slack
-import com.slack.api.methods.request.chat.ChatPostMessageRequest
-import com.slack.api.methods.response.chat.ChatPostMessageResponse
+import com.dunice.nerd_kotlin.common.db.MemberDocument
+import com.dunice.nerd_kotlin.common.db.RemainderDocument
+import com.dunice.nerd_kotlin.common.types.ExamDTO
+import java.util.*
 
-class SlackService {
-    var messageText : String = "Hello"
+interface SlackService {
 
-    var slack : Slack = Slack.getInstance()
+    fun getNamesByEmail(vararg emails: String): Map<String, MemberDocument>
 
-    var token : String = ""
-
-    var channelId : String = ""
-
-    fun postMessage() {
-        var methods = slack.methods(token)
-        var request = ChatPostMessageRequest.builder()
-            .channel(channelId)
-            .text(messageText)
-            .build();
-        var chatPostMessageResponse : ChatPostMessageResponse = methods.chatPostMessage(request)
-    }
+    fun sendMessage(email: String, message: String)
 }
