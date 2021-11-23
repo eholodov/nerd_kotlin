@@ -1,6 +1,4 @@
-package com.dunice.nerd_kotlin.common.controller
-
-import com.dunice.nerd_kotlin.common.services.NerdService
+package com.dunice.nerd_kotlin.matrixSchedule
 
 import org.springframework.validation.annotation.Validated
 import com.dunice.nerd_kotlin.common.types.ExamDTO

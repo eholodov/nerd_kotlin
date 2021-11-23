@@ -1,14 +1,17 @@
-package com.dunice.nerd_kotlin.common.services
+package com.dunice.nerd_kotlin.matrixSchedule
 
 import com.dunice.nerd_kotlin.common.db.RemainderDocument
 import com.dunice.nerd_kotlin.common.db.RemaindersRepository
 import com.dunice.nerd_kotlin.common.errors.CustomException
 import com.dunice.nerd_kotlin.common.errors.SAME_EMAILS
 import com.dunice.nerd_kotlin.common.types.ExamDTO
+import com.dunice.nerd_kotlin.services.MessageGenerationService
+import com.dunice.nerd_kotlin.services.SlackService
 import org.springframework.stereotype.Service
 
 @Service
-class NerdServiceImpl (val slackService: SlackService, val remindersRepository: RemaindersRepository, val messageGenerationService: MessageGenerationService) : NerdService {
+class NerdServiceImpl (val slackService: SlackService, val remindersRepository: RemaindersRepository, val messageGenerationService: MessageGenerationService) :
+    NerdService {
 
     override fun getDataFromRiseUp(examDTO: List<ExamDTO>) {
         examDTO.toMutableList()

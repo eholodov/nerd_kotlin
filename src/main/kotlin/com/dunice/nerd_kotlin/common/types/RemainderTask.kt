@@ -1,9 +1,7 @@
 package com.dunice.nerd_kotlin.common.types
 
 import com.dunice.nerd_kotlin.common.db.RemainderDocument
-import com.dunice.nerd_kotlin.common.db.RemaindersRepository
-import com.dunice.nerd_kotlin.common.services.MessageGenerationService
-import org.springframework.beans.factory.annotation.Autowired
+import com.dunice.nerd_kotlin.services.MessageGenerationService
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query

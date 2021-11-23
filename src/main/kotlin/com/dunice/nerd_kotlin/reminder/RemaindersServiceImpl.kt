@@ -1,7 +1,8 @@
-package com.dunice.nerd_kotlin.common.services
+package com.dunice.nerd_kotlin.reminder
 
 import com.dunice.nerd_kotlin.common.db.RemainderDocument
 import com.dunice.nerd_kotlin.common.types.RemainderTask
+import com.dunice.nerd_kotlin.services.MessageGenerationService
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import org.springframework.data.mongodb.core.MongoTemplate
@@ -11,9 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.time.temporal.ChronoField
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 @Service

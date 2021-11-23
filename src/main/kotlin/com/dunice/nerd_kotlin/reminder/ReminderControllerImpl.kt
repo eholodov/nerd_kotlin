@@ -1,6 +1,5 @@
-package com.dunice.nerd_kotlin.common.controller
+package com.dunice.nerd_kotlin.reminder
 
-import com.dunice.nerd_kotlin.common.services.RemaindersService
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 

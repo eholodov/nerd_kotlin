@@ -1,9 +1,6 @@
-package com.dunice.nerd_kotlin.common.services
+package com.dunice.nerd_kotlin.services
 
 import com.dunice.nerd_kotlin.common.db.MemberDocument
-import com.dunice.nerd_kotlin.common.db.RemainderDocument
-import com.dunice.nerd_kotlin.common.types.ExamDTO
-import java.util.*
 
 interface SlackService {
 
