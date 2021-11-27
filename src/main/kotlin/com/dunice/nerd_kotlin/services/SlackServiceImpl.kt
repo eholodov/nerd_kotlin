@@ -65,7 +65,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
         }
     }
 
-    private fun postMessage(channel: String, messageText: String) = slack.methods(token)
+    fun postMessage(channel: String, messageText: String) = slack.methods(token)
         .chatPostMessage(ChatPostMessageRequest.builder()
             .channel(channel)
             .blocks {
