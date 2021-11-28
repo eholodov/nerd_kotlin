@@ -34,7 +34,6 @@ class AcademySchedulerServiceImpl(
 
             reminders.forEach {
 
-                println("Полетел $it")
                 val task = AcademyReminderTask(
                     it,
                     academyReminderRepository,
@@ -52,6 +51,21 @@ class AcademySchedulerServiceImpl(
         }
     }
 
+
+    fun cancelScheduledTasksByDepartment(department: String) {
+        try {
+            val scheduledTasks = departmentScheduler[department]
+            lock.lock()
+            if (scheduledTasks !=null && scheduledTasks.isNotEmpty()) {
+                scheduledTasks.forEach {
+                    it.cancel()
+                }
+                scheduledTasks.clear()
+            }
+        } finally {
+            lock.unlock()
+        }
+    }
 
     fun refreshAllReminders() {
         try {

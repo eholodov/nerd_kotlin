@@ -71,23 +71,11 @@ dependencies {
 	// https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api
 	implementation("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1")
 
-	// https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-runtime
-	implementation("org.glassfish.jaxb:jaxb-runtime:3.0.1")
-
 	// https://mvnrepository.com/artifact/javax.activation/activation
 	implementation("javax.activation:activation:1.1.1")
 
-
-	// https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-core
-	implementation("com.sun.xml.bind:jaxb-core:3.0.1")
-
-
-	// https://mvnrepository.com/artifact/com.sun.xml.bind/jaxb-impl
-	implementation("com.sun.xml.bind:jaxb-impl:3.0.1")
-
-
 	// https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
-	implementation("javax.xml.bind:jaxb-api:2.3.1")
+	implementation("javax.xml.bind:jaxb-api:2.4.0-b180830.0359")
 
 	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security
 	implementation("org.springframework.boot:spring-boot-starter-security:2.5.4")

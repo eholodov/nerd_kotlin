@@ -16,7 +16,7 @@ class AcademyReminderService(
     val academySchedulerServiceImpl: AcademySchedulerServiceImpl
 ) {
 
-    fun addReminders(data: List<List<String>>, department: String): MutableList<Event> {
+    fun addReminders(data: List<List<String>>, department: String) {
         val events = data.fold(mutableListOf<Event>()) { acc, item ->
 
             val parsedDate = OffsetDateTime.parse(item[0])
@@ -42,11 +42,10 @@ class AcademyReminderService(
         }
 
         academyReminderRepository.deleteAllByIsSentAndDepartment(false, department)
+        academySchedulerServiceImpl.cancelScheduledTasksByDepartment(department)
         val reminders = generateAndSaveAcademyReminders(events, department)
 
         academySchedulerServiceImpl.schedule(reminders, department)
-
-        return events
     }
 // For testing
 //    @EventListener(classes = [ContextRefreshedEvent::class])
