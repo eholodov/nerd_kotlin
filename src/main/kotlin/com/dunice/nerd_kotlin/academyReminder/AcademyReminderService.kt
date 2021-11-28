@@ -150,16 +150,7 @@ class AcademyReminderService(
             datesEvents.toList().forEach {
                 val lEvents = it.second
                 val dateOfElem = lEvents[0].date
-                val dateToSend = OffsetDateTime.of(
-                    dateOfElem.year,
-                    dateOfElem.monthValue,
-                    dateOfElem.dayOfMonth,
-                    6,
-                    0,
-                    0,
-                    0,
-                    ZoneOffset.UTC
-                )
+                val dateToSend = generateDateToSend(dateOfElem)
 
                 if (dateToSend < now) {
                     return acc
@@ -242,5 +233,23 @@ class AcademyReminderService(
             acc[item.getFullName()] = item.getSlackId()
             acc
         }
+    }
+
+    private fun generateDateToSend(dateOfElem: OffsetDateTime): OffsetDateTime {
+
+        // Added 3 hours for understanding is it must be sent in the next day
+        val dateOfElemPlus3Hours = dateOfElem.plusHours(3)
+        val validDate = if ( dateOfElemPlus3Hours.dayOfMonth > dateOfElem.dayOfMonth) dateOfElemPlus3Hours else dateOfElem
+
+        return OffsetDateTime.of(
+            validDate.year,
+            validDate.monthValue,
+            validDate.dayOfMonth,
+            6,
+            0,
+            0,
+            0,
+            ZoneOffset.UTC
+        )
     }
 }
