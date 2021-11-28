@@ -4,6 +4,7 @@ import com.dunice.nerd_kotlin.academyReminder.types.Event
 import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.common.db.MembersRepository
+import com.dunice.nerd_kotlin.services.SlackServiceImpl
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -11,9 +12,10 @@ import java.time.ZoneOffset
 
 @Service
 class AcademyReminderService(
-    val membersRepository: MembersRepository,
-    val academyReminderRepository: AcademyReminderRepository,
-    val academySchedulerServiceImpl: AcademySchedulerServiceImpl
+    private val membersRepository: MembersRepository,
+    private val academyReminderRepository: AcademyReminderRepository,
+    private val academySchedulerServiceImpl: AcademySchedulerServiceImpl,
+    private val slackServiceImpl: SlackServiceImpl
 ) {
 
     fun addReminders(data: List<List<String>>, department: String) {
@@ -215,18 +217,21 @@ class AcademyReminderService(
             acc
         }
 
-        val slackIdsFullName = membersRepository.findByFullNameIn(recipients.toList())
+        var slackIdsFullName = membersRepository.findByFullNameIn(recipients.toList())
 
         if (recipients.size > slackIdsFullName.size) {
-            val diff = recipients.filter { recipient ->
-                val element = slackIdsFullName.find { it.getFullName() == recipient  }
+            slackServiceImpl.getUsersFromSlackV2()
+            slackIdsFullName = membersRepository.findByFullNameIn(recipients.toList())
+            if (recipients.size > slackIdsFullName.size) {
+                val diff = recipients.filter { recipient ->
+                    val element = slackIdsFullName.find { it.getFullName() == recipient  }
 
-                element == null
+                    element == null
+                }
+
+                throw RuntimeException("Не были найдены slack id для пользователе ${diff.joinToString(" ")}")
             }
-
-            throw RuntimeException("Не были найдены slack id для пользователе ${diff.joinToString(" ")}")
         }
-
 
         return slackIdsFullName.fold(mutableMapOf()) { acc, item ->
 

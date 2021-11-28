@@ -1,6 +1,7 @@
 package com.dunice.nerd_kotlin.common.errors
 
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException
+import io.jsonwebtoken.MalformedJwtException
 import org.springframework.http.HttpStatus
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -33,19 +34,34 @@ class NerdControllerAdvice {
 
         return "Validation Exception is: ${ex.stackTraceToString()}"
     }
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    @ExceptionHandler(CustomException::class)
+    fun handleCustomException(ex: CustomException): String {
+        return "Custom Exception is: ${ex.message}"
+    }
 
-//    @ExceptionHandler(CustomException::class)
-//    fun handleCustomException(ex: CustomException) {
-//        println("🤢 Custom Exception is: ${ex.message} 🤢")
-//    }
-//
-//    @ExceptionHandler(SlackEmailNotFoundException::class)
-//    private fun handleEmailNotFoundException(ex: SlackEmailNotFoundException) {
-//        println("🤢 EmailNotFound Exception is: ${ex.message} 🤢")
-//    }
-//
-//    @ExceptionHandler(MalformedJwtException::class)
-//    private fun handeWrongTokenException(exception: MalformedJwtException) {
-//        println("🤢MalformedJwtException is : Unable to read JSON value🤢")
-//    }
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    @ExceptionHandler(SlackEmailNotFoundException::class)
+    private fun handleEmailNotFoundException(ex: SlackEmailNotFoundException): String {
+        return "EmailNotFound Exception is: ${ex.message} "
+    }
+
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    @ExceptionHandler(MalformedJwtException::class)
+    private fun handeWrongTokenException(exception: MalformedJwtException): String {
+        
+        return "MalformedJwtException is : Unable to read JSON value"
+    }
+
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    @ExceptionHandler(RuntimeException::class)
+    fun handleRuntimeException(ex: RuntimeException): String? {
+        return ex.message
+    }
+
+
 }
