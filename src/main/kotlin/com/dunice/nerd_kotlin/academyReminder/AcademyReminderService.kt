@@ -23,11 +23,15 @@ class AcademyReminderService(
 
             val parsedDate = OffsetDateTime.parse(item[0])
 
-            val recipients = item[4].split(" ")
+            var recipients = item[4].split(" ")
 
-            if (recipients.size % 2 != 0) {
+            if (recipients.size > 1 && recipients.size % 2 != 0) {
                 throw RuntimeException("Полу" +
                         "чатели указаны в некорректном формате!")
+            }
+
+            if (recipients.size == 1) {
+                recipients = listOf()
             }
 
             val recipientsList = mutableListOf<String>()

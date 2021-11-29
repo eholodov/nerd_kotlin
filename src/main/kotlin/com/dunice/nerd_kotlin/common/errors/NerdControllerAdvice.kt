@@ -60,7 +60,7 @@ class NerdControllerAdvice {
     @ResponseBody
     @ExceptionHandler(RuntimeException::class)
     fun handleRuntimeException(ex: RuntimeException): String? {
-        return ex.message
+        return "Runtime ${ex.message}"
     }
 
 
