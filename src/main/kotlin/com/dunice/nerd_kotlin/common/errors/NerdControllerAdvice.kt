@@ -1,6 +1,6 @@
 package com.dunice.nerd_kotlin.common.errors
 
-import com.dunice.nerd_kotlin.common.services.slack.SlackService
+import com.dunice.nerd_kotlin.services.slack.SlackService
 import com.fasterxml.jackson.databind.exc.ValueInstantiationException
 import io.jsonwebtoken.MalformedJwtException
 import org.springframework.http.HttpStatus

@@ -1,7 +1,7 @@
-package com.dunice.nerd_kotlin.common.controller
+package com.dunice.nerd_kotlin.controller
 
 import com.dunice.nerd_kotlin.common.db.RemaindersRepository
-import com.dunice.nerd_kotlin.common.services.generation.TestMessageGenerationServiceImpl
+import com.dunice.nerd_kotlin.services.generation.TestMessageGenerationServiceImpl
 import com.dunice.nerd_kotlin.common.types.ExamDTO
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

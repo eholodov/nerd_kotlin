@@ -1,5 +1,6 @@
 package com.dunice.nerd_kotlin.common.db
 
+import com.dunice.nerd_kotlin.common.db.projections.SlackIdFullNameProjection
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
 import java.util.*
@@ -11,4 +12,5 @@ interface MembersRepository : MongoRepository<MemberDocument, String>{
 
     fun existsByEmail(email: String) : Boolean
 
+    fun findByFullNameIn(names: List<String>): List<SlackIdFullNameProjection>
 }

@@ -1,6 +1,6 @@
-package com.dunice.nerd_kotlin.common.controller
+package com.dunice.nerd_kotlin.controller
 
-import com.dunice.nerd_kotlin.common.services.NerdService
+import com.dunice.nerd_kotlin.services.NerdService
 
 import org.springframework.validation.annotation.Validated
 import com.dunice.nerd_kotlin.common.types.ExamDTO

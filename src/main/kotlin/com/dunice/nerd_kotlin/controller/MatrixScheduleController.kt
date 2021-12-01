@@ -1,4 +1,4 @@
-package com.dunice.nerd_kotlin.common.controller
+package com.dunice.nerd_kotlin.controller
 
 import com.dunice.nerd_kotlin.common.types.ExamDTO
 import org.springframework.web.bind.annotation.PostMapping
@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 interface MatrixScheduleController {
 
     @PostMapping("/send-schedule")
-    public fun getDataFromRiseUp(examDataDTO: List<ExamDTO>)
+    fun getDataFromRiseUp(examDataDTO: List<ExamDTO>)
 
     @PostMapping("/generate-reminders")
-    public fun generateReminders(examDataDTO: List<ExamDTO>)
+    fun generateReminders(examDataDTO: List<ExamDTO>)
 }

@@ -1,12 +1,11 @@
-package com.dunice.nerd_kotlin.common.services.generation
+package com.dunice.nerd_kotlin.services.generation
 
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.common.db.RemainderDocument
 import com.dunice.nerd_kotlin.common.errors.CustomException
-import com.dunice.nerd_kotlin.common.services.slack.SlackService
+import com.dunice.nerd_kotlin.services.slack.SlackService
 import com.dunice.nerd_kotlin.common.types.ExamDTO
 import com.dunice.nerd_kotlin.common.utils.getCyrillicDayOfWeek
-import org.springframework.context.annotation.Primary
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import java.time.ZoneId
@@ -15,10 +14,11 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 @Service
-@Profile("prod")
-@Primary
-class MessageGenerationServiceImpl(val slackService: SlackService, val membersRepository: MembersRepository) :
+@Profile("dev", "prod")
+class TestMessageGenerationServiceImpl(val slackService: SlackService, val membersRepository: MembersRepository) :
     MessageGenerationService {
+
+    private val messageList : MutableList<String> = mutableListOf()
 
     override fun generateStudentMessage(info: ExamDTO) {
         val names = slackService.getNamesByEmail(info.studentEmail, info.interviewerEmail, info.assistantEmail ?: "")
@@ -33,7 +33,8 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
                         .format(DateTimeFormatter.ofPattern("HH:mm"))
                 } " +
                 "$messagePart ${info.room}"
-        slackService.sendMessage(info.studentEmail, message)
+        messageList.add(message + "\n")
+        println(message)
     }
 
     override fun generateInterviewerOrAssistantMessage(examDataDTO: List<ExamDTO>) {
@@ -42,33 +43,33 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
         cardsGroupedByInterviewerAndAssistant.forEach {
             if (!slackService.checkEmail(it.key)) throw CustomException("Interviewer with email ${it.key} is incorrect") }
         examDataDTO.forEach {
-             dto ->
-                if (dto.assistantEmail != null && dto.assistantEmail != "") {
-                    if (cardsGroupedByInterviewerAndAssistant.containsKey(dto.assistantEmail)) {
-                        cardsGroupedByInterviewerAndAssistant[dto.assistantEmail]!!.add(dto)
-                    }
-                    else {
-                        cardsGroupedByInterviewerAndAssistant[dto.assistantEmail] = listOf(dto).toMutableList()
-                    }
+                dto ->
+            if (dto.assistantEmail != null && dto.assistantEmail != "") {
+                if (cardsGroupedByInterviewerAndAssistant.containsKey(dto.assistantEmail)) {
+                    cardsGroupedByInterviewerAndAssistant[dto.assistantEmail]!!.add(dto)
                 }
+                else {
+                    cardsGroupedByInterviewerAndAssistant[dto.assistantEmail] = listOf(dto).toMutableList()
+                }
+            }
         }
         cardsGroupedByInterviewerAndAssistant.forEach { groupedCard ->
             val messageText = buildString {
                 append("Привет, ")
-                append(membersRepository.findOneByEmail(groupedCard.key).orElseThrow{
-                    CustomException("Interviewer with email \"${groupedCard.key}\" is not found")
-                }.fullName.split(" ")[0])
+                append(membersRepository.findOneByEmail(groupedCard.key).orElseThrow{CustomException("Interviewer with email \"${groupedCard.key}\" is not found")}.fullName.split(" ")[0])
                 append("! ${String(Character.toChars(0x1F44B))} \n ")
                 append("Твое расписание матрицы на эту неделю: \n ")
                 groupedCard.value.sortBy { it.datetime }
                 val groupedByWeekDay = groupedCard.value.groupBy { it.datetime.dayOfWeek }
                 groupedByWeekDay.forEach {
-                    append("*${getCyrillicDayOfWeek(it.key)} ${ZonedDateTime.ofInstant(it.value[0].datetime.toInstant(), ZoneId.of("Europe/Moscow"))
+                    append("*${getCyrillicDayOfWeek(it.key)} ${
+                        ZonedDateTime.ofInstant(it.value[0].datetime.toInstant(), ZoneId.of("Europe/Moscow"))
                         .format(DateTimeFormatter.ofPattern("(dd.MM.yyyy)"))}*\n")
                     it.value.forEach { interview ->
                         val names = slackService.getNamesByEmail(interview.studentEmail, interview.assistantEmail ?: "")
                         append(
-                            ">📚 ${interview.subject} ${ZonedDateTime.ofInstant(interview.datetime.toInstant(),
+                            ">📚 ${interview.subject} ${
+                                ZonedDateTime.ofInstant(interview.datetime.toInstant(),
                                 ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("HH:mm"))}" +
                                     " ${names[interview.studentEmail]?.fullName} "
                         )
@@ -78,7 +79,8 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
                 }
 
             }
-            slackService.sendMessage(groupedCard.key ,messageText)
+            messageList.add(messageText + "\n")
+            println(messageText)
         }
     }
 
@@ -99,15 +101,25 @@ class MessageGenerationServiceImpl(val slackService: SlackService, val membersRe
                             else "${names[remainderDocument.studentEmail]?.fullName}"} ${remainderDocument.room}"
                 )
             }
-            slackService.sendMessage(it.key, messageText)
+            messageList.add(messageText + "\n")
+            println(messageText)
+
         }
     }
 
     override fun generateRemainderDescription(remainderDocument: RemainderDocument) : String {
         val names = slackService.getNamesByEmail(remainderDocument.studentEmail, remainderDocument.interviewerEmail, remainderDocument.assistantEmail?: "")
         return "Матрица для ${names[remainderDocument.studentEmail]?.fullName} по предмету ${remainderDocument.subject} запланирована на " +
-                "${ZonedDateTime.ofInstant(remainderDocument.dateTime.plus(10L, ChronoUnit.MINUTES),
-            ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))} в комнате ${remainderDocument.subject}\n" +
+                "${
+                    ZonedDateTime.ofInstant(remainderDocument.dateTime.plus(10L, ChronoUnit.MINUTES),
+                    ZoneId.of("Europe/Moscow")).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))} в комнате ${remainderDocument.subject}\n" +
                 "Принимающие: ${names[remainderDocument.interviewerEmail]?.fullName} ${names[remainderDocument.assistantEmail]?.fullName?: ""}"
+    }
+
+    fun getMessageList() : MutableList<String> {
+        val clonedList = mutableListOf<String>()
+        clonedList.addAll(messageList)
+        messageList.clear()
+        return clonedList
     }
 }

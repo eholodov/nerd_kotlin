@@ -1,4 +1,4 @@
-package com.dunice.nerd_kotlin.common.controller
+package com.dunice.nerd_kotlin.controller
 
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping

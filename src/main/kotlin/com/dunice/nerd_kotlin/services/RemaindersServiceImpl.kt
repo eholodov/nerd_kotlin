@@ -1,7 +1,7 @@
-package com.dunice.nerd_kotlin.common.services
+package com.dunice.nerd_kotlin.services
 
 import com.dunice.nerd_kotlin.common.db.RemainderDocument
-import com.dunice.nerd_kotlin.common.services.generation.MessageGenerationService
+import com.dunice.nerd_kotlin.services.generation.MessageGenerationService
 import com.dunice.nerd_kotlin.common.types.RemainderTask
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
