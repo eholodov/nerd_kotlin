@@ -1,4 +1,4 @@
-package com.dunice.nerd_kotlin.common.services.slack
+package com.dunice.nerd_kotlin.services.slack
 
 import com.dunice.nerd_kotlin.common.db.MemberDocument
 import com.dunice.nerd_kotlin.common.db.MembersRepository
@@ -10,6 +10,8 @@ import com.slack.api.methods.kotlin_extension.request.chat.blocks
 import com.slack.api.methods.request.chat.ChatPostMessageRequest
 import com.slack.api.methods.request.users.UsersListRequest
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -38,7 +40,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
 
     @PostConstruct
     private fun init() {
-        this.getUsersFromSlack()
+//        this.getUsersFromSlack()
 
     }
 
@@ -63,6 +65,18 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
         }.associateBy { it.email!! }
     }
 
+    fun getUsersFromSlackV2() {
+        val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
+        throw CustomException(PERSON_NOT_FOUND)
+        users.filter{!it.isDeleted}.forEach {
+            val name = if (slackGoogleDocAliases.containsKey(it.realName)) slackGoogleDocAliases[it.realName]!! else it.realName
+            val member = MemberDocument(it.profile.email, it.id, name)
+            mongoTemplate.upsert(Query().addCriteria(Criteria.where("email").`is`(member.email)),
+                Update().set("slackId", member.slackId).set("fullName", member.fullName), "slackIds")
+        }
+    }
+
+    @Deprecated("use getUsersFromSlack v2")
     private fun getUsersFromSlack() {
         val documents: MutableList<MemberDocument> = emptyList<MemberDocument>().toMutableList()
         val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
@@ -76,7 +90,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
         }
     }
 
-    private fun postMessage(channel: String, messageText: String) = slack.methods(token)
+    fun postMessage(channel: String, messageText: String) = slack.methods(token)
         .chatPostMessage(ChatPostMessageRequest.builder()
             .channel(channel)
             .blocks {

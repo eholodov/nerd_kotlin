@@ -94,7 +94,7 @@ dependencies {
 	implementation("com.slack.api:slack-api-model-kotlin-extension:1.12.1")
 	implementation("com.slack.api:slack-api-client-kotlin-extension:1.12.1")
 
-
+	implementation(files("libs/logback-webhook-appender-1.0.3.jar"))
 }
 
 tasks.withType<KotlinCompile> {

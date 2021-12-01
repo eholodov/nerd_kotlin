@@ -1,6 +1,5 @@
-package com.dunice.nerd_kotlin.common.services.generation
+package com.dunice.nerd_kotlin.services.generation
 
-import com.dunice.nerd_kotlin.common.db.MemberDocument
 import com.dunice.nerd_kotlin.common.db.RemainderDocument
 import com.dunice.nerd_kotlin.common.types.ExamDTO
 
