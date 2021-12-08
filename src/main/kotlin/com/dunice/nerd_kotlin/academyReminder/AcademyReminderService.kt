@@ -137,15 +137,15 @@ class AcademyReminderService(
     ): List<AcademyReminderDocument> {
 
         return events
-            .fold(mutableMapOf<String, MutableMap<String, MutableList<Event>>>()) {acc, event ->
+            .fold(mutableMapOf<String, MutableMap<OffsetDateTime, MutableList<Event>>>()) {acc, event ->
 
-            val keyDate = "${event.date.dayOfMonth}${event.date.month}"
+            val dateToSend = generateDateToSend(event.date)
 
             event.recipients.forEach {
                 acc.putIfAbsent(it, mutableMapOf())
                 val recipient = acc[it]
-                recipient!!.putIfAbsent(keyDate, mutableListOf())
-                recipient[keyDate]!!.add(event)
+                recipient!!.putIfAbsent(dateToSend, mutableListOf())
+                recipient[dateToSend]!!.add(event)
             }
 
             acc
@@ -155,11 +155,10 @@ class AcademyReminderService(
 
             datesEvents.toList().forEach {
                 val lEvents = it.second
-                val dateOfElem = lEvents[0].date
-                val dateToSend = generateDateToSend(dateOfElem)
+                val dateToSend = it.first
 
                 if (dateToSend < now) {
-                    return acc
+                    return@forEach
                 }
 
                 val messageBuilder = MessageBuilder()
