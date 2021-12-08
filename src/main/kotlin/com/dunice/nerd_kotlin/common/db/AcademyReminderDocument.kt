@@ -10,6 +10,7 @@ data class AcademyReminderDocument(
     val message: String,
     val slackId: String,
     val department: String,
+    val week: Int,
     var isSent: Boolean = false,
     ) {
     @Id

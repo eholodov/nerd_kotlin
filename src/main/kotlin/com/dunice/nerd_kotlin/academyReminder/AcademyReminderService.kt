@@ -5,9 +5,12 @@ import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
+import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+import java.util.*
 
 
 @Service
@@ -43,19 +46,23 @@ class AcademyReminderService(
             recipientsList.add(item[1])
             recipientsList.add(item[3])
 
-            acc.add(Event(parsedDate, item[1], item[2], item[3], recipientsList ))
+
+            acc.add(Event(parsedDate, item[1], item[2], item[3], recipientsList , item[4], item[5],item[6]))
             acc
         }
 
+
+        myTestFun(events)
         academyReminderRepository.deleteAllByIsSentAndDepartment(false, department)
         academySchedulerServiceImpl.cancelScheduledTasksByDepartment(department)
         val reminders = generateAndSaveAcademyReminders(events, department)
 
         academySchedulerServiceImpl.schedule(reminders, department)
     }
+
 // For testing
-//    @EventListener(classes = [ContextRefreshedEvent::class])
-//    fun handleMultipleEvents() {
+    @EventListener(classes = [ContextRefreshedEvent::class])
+    fun handleMultipleEvents() {
 
 //        this.addReminders(listOf(
 //            listOf("2021-11-27T09:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
@@ -63,12 +70,13 @@ class AcademyReminderService(
 //            listOf("2021-11-27T21:00:00.000Z","Кирилл Коломейцев","Опрос","Валерий Попов", "Евгений Холодов"),
 //        ), "java")
 
-//        this.addReminders(listOf(
-//            listOf("2021-11-29T13:37:00.000Z","Евгений Холодов","Предопрос111", "Евгений Холодов", "Евгений Холодов"),
-//            listOf("2021-11-29T13:36:00.000Z","Евгений Холодов","Предопрос222","Евгений Холодов", "Евгений Холодов"),
-//            listOf("2021-11-29T13:35:00.000Z","Стажер Холодов","Опрос","Интервьюер Холодов", "Евгений Холодов"),
-//        ), "java")
-//    }
+        this.addReminders(listOf(
+            listOf("2021-12-07T13:37:00.000Z","Дмитрий Коровяков","Предопрос", "Евгений Холодов", "JUNIOR","Итальянский", "java"),
+            listOf("2021-12-07T13:37:00.000Z","Дмитрий Коровяков","Опрос", "Евгений Холодов", "JUNIOR","Итальянский", "java"),
+//            listOf("2021-12-07T13:36:00.000Z","Евгений Холодов","Предопрос222","Евгений Холодов", "Евгений Холодов"),
+//            listOf("2021-12-07T13:35:00.000Z","Стажер Холодов","Опрос","Интервьюер Холодов", "Евгений Холодов"),
+        ), "java")
+    }
 
     private fun generateAndSaveAcademyReminders(events: List<Event>, department: String): List<AcademyReminderDocument> {
         val fullNameSlackIdsMap = getSlackIds(events)
@@ -84,7 +92,11 @@ class AcademyReminderService(
         return reminders
 
     }
-
+    private fun currentWeek(now: OffsetDateTime): Int {
+        val calendar: Calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        calendar.set(now.year, now.monthValue, now.dayOfMonth)
+        return calendar[Calendar.WEEK_OF_YEAR]
+    }
     private fun generateReminders(
         events: List<Event>,
         fullNameSlackIdsMap: MutableMap<String, String>,
@@ -121,7 +133,9 @@ class AcademyReminderService(
                     fullNameSlackIdsMap.getOrElse(it) {
                         throw RuntimeException("$it не была найден в fullNameSlackIdsMap")
                     },
-                    department)
+                    department,
+                    currentWeek(now)
+                    )
                 )
             }
             acc
@@ -129,6 +143,76 @@ class AcademyReminderService(
 
     }
 
+    fun myTestFun(events: MutableList<Event>) {
+
+        val recipients = events.fold(mutableMapOf<String, MutableList<Event>>()) { acc, event ->
+
+
+            event.recipients.forEach{
+                acc.putIfAbsent(it, mutableListOf())
+                acc[it]!!.add(event)
+            }
+
+            acc
+        }
+        val  recipientsKeysValue =   recipients.keys.toList()
+
+        println(recipients)
+
+
+
+    }
+    private  fun  checkSendMessage(currentWeek: Int): Boolean {
+        return academyReminderRepository.findOneByWeek(currentWeek)
+    }
+    private fun dayOfWeekMessage(
+        time: String,
+        interviewer: String,
+        topic: String,
+        lvl: String,
+        location: String,
+        datesEvents: String,
+        dayOfWeek: String
+    ): MessageBuilder {
+        return MessageBuilder().dayOfWeek(dayOfWeek, datesEvents)
+            .dayOfWeekMessaget(time, interviewer, topic, lvl, location)
+    }
+    private fun generateWeeklyMessage(name:String, events: MutableList<Event>, now: OffsetDateTime): List<AcademyReminderDocument>{
+        val info = events.getValue(name)
+        val currenWeek = currentWeek(now)
+        val messageBuilder = MessageBuilder().greetings(name).nextLine()
+        val datesEvents = "test"
+        val time = events[0]
+        val eventType = events[2]
+        val topic = events [7]
+        val interviewer = events[3]
+        val trainee = events [1]
+        val lvl = events [5]
+        val location = events [6]
+        val day = "monday"
+        val event =  messageBuilder
+//                    .nextLine()
+//                    .weekly(eventType)
+//                    .nextLine()
+//                    .dayOfWeek("Понедельник", datesEvents)
+//                    .dayOfWeekMessaget(time, interviewer, topic, lvl, location)
+//                    .nextLine()
+//                    .dayOfWeek("Вторник", datesEvents)
+//                    .dayOfWeekMessaget(time, interviewer, topic, lvl, location)
+//                    .nextLine()
+//                    .dayOfWeek("Среда", datesEvents)
+//                    .dayOfWeekMessaget(time, interviewer, topic, lvl, location)
+//                    .nextLine()
+//                    .dayOfWeek("Четверг", datesEvents)
+//                    .dayOfWeekMessaget(time, interviewer, topic, lvl, location)
+//                    .nextLine()
+//                    .dayOfWeek("Пятница", datesEvents)
+//                    .dayOfWeekMessaget(time, interviewer, topic, lvl, location)
+
+
+
+
+    }
     private fun generateDailyReminders(
         events: List<Event>,
         fullNameSlackIdsMap: MutableMap<String, String>,
@@ -201,10 +285,13 @@ class AcademyReminderService(
                 acc.add(AcademyReminderDocument(
                     dateToSend.toInstant(),
                     message,
+
                     fullNameSlackIdsMap.getOrElse(name) {
                         throw RuntimeException("$name не была найден в fullNameSlackIdsMap")
                     },
-                    department
+
+                    department,
+                    currentWeek(now)
                 ))
             }
 
@@ -218,6 +305,14 @@ class AcademyReminderService(
             item.recipients.forEach {
                 acc.add(it)
             }
+            acc
+        }
+
+
+        println(recipients)
+
+        return recipients.fold(mutableMapOf()) {acc, item ->
+            acc[item] = "mock"
             acc
         }
 

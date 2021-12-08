@@ -1,5 +1,7 @@
 package com.dunice.nerd_kotlin.academyReminder
 
+import java.time.DayOfWeek
+
 data class MessageBuilder(
     val parts: StringBuilder = StringBuilder()
 ) {
@@ -8,6 +10,19 @@ data class MessageBuilder(
         parts.append("Привет, $name! :wave::skin-tone-2:")
         return this
     }
+    fun weekly(eventType: String): MessageBuilder{
+        parts.append("Твое расписание $eventType на эту неделю:")
+        return this
+    }
+    fun dayOfWeek(dayOfWeek: String, data: String): MessageBuilder {
+        parts.append("*$dayOfWeek ($data)*")
+        return this
+    }
+    fun dayOfWeekMessaget(time: String, interviewer: String, topic: String, lvl: String, location: String): MessageBuilder{
+        parts.append(":books: $topic [$lvl] $time $interviewer $location")
+        return this
+    }
+
 
     fun hey(): MessageBuilder {
         parts.append("Хэй! :wave:")

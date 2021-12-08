@@ -7,7 +7,6 @@ import java.time.Instant
 @Repository
 interface AcademyReminderRepository : MongoRepository<AcademyReminderDocument, String> {
     fun deleteAllByIsSentAndDepartment(isSent: Boolean, department: String) : Long
-
-
+    fun findOneByWeek(week: Int) : Boolean
     fun findAllByIsSentAndDepartmentAndDateToSendGreaterThan(isSent: Boolean, department: String, now: Instant) : List<AcademyReminderDocument>
 }
