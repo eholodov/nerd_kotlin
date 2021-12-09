@@ -38,11 +38,10 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
     @Value("\${slack.web.api.logChannel}")
     lateinit var slackLogChannel : String
 
-    @PostConstruct
-    private fun init() {
+//    @PostConstruct
+//    private fun init() {
 //        this.getUsersFromSlack()
-
-    }
+//    }
 
     override fun sendMessage(email: String, message: String) {
         this.postMessage(membersRepository.findOneByEmail(email).get().slackId, message)
