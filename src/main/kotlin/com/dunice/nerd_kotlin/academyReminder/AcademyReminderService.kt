@@ -1,5 +1,6 @@
 package com.dunice.nerd_kotlin.academyReminder
 
+import com.dunice.nerd_kotlin.AcademyReminders.WeeklyReminderService
 import com.dunice.nerd_kotlin.academyReminder.types.Event
 import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
@@ -15,7 +16,8 @@ class AcademyReminderService(
     private val membersRepository: MembersRepository,
     private val academyReminderRepository: AcademyReminderRepository,
     private val academySchedulerServiceImpl: AcademySchedulerServiceImpl,
-    private val slackServiceImpl: SlackServiceImpl
+    private val slackServiceImpl: SlackServiceImpl,
+    private val weeklyReminderService: WeeklyReminderService
 ) {
 
     fun addReminders(data: List<List<String>>, department: String) {
@@ -51,6 +53,7 @@ class AcademyReminderService(
         academySchedulerServiceImpl.cancelScheduledTasksByDepartment(department)
         val reminders = generateAndSaveAcademyReminders(events, department)
 
+        weeklyReminderService.generateWeeklyReminders(events, department);
         academySchedulerServiceImpl.schedule(reminders, department)
     }
 // For testing
