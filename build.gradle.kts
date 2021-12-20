@@ -21,6 +21,12 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	testImplementation("org.springframework.boot:spring-boot-starter-test:2.5.4")
 
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-aop
+	implementation("org.springframework.boot:spring-boot-starter-aop:2.6.1")
+
+	// https://mvnrepository.com/artifact/org.projectlombok/lombok
+	compileOnly("org.projectlombok:lombok:1.18.22")
+
 	// https://mvnrepository.com/artifact/org.springframework.data/spring-data-mongodb
 	implementation("org.springframework.data:spring-data-mongodb:3.2.4")
 

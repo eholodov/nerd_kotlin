@@ -5,6 +5,8 @@ import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
+import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -54,21 +56,21 @@ class AcademyReminderService(
         academySchedulerServiceImpl.schedule(reminders, department)
     }
 // For testing
-//    @EventListener(classes = [ContextRefreshedEvent::class])
-//    fun handleMultipleEvents() {
+    @EventListener(classes = [ContextRefreshedEvent::class])
+    fun handleMultipleEvents() {
 
-//        this.addReminders(listOf(
-//            listOf("2021-11-27T09:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
-//            listOf("2021-11-27T21:00:00.000Z","Геннадий Герасименков","Предопрос","Максим Сметанкин", "Евгений Холодов"),
-//            listOf("2021-11-27T21:00:00.000Z","Кирилл Коломейцев","Опрос","Валерий Попов", "Евгений Холодов"),
-//        ), "java")
+        this.addReminders(listOf(
+            listOf("2021-11-27T09:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
+            listOf("2021-11-27T21:00:00.000Z","Геннадий Герасименков","Предопрос","Максим Сметанкин", "Евгений Холодов"),
+            listOf("2021-11-27T21:00:00.000Z","Кирилл Коломейцев","Опрос","Валерий Попов", "Евгений Холодов"),
+        ), "java")
 
 //        this.addReminders(listOf(
 //            listOf("2021-11-29T13:37:00.000Z","Евгений Холодов","Предопрос111", "Евгений Холодов", "Евгений Холодов"),
 //            listOf("2021-11-29T13:36:00.000Z","Евгений Холодов","Предопрос222","Евгений Холодов", "Евгений Холодов"),
 //            listOf("2021-11-29T13:35:00.000Z","Стажер Холодов","Опрос","Интервьюер Холодов", "Евгений Холодов"),
 //        ), "java")
-//    }
+    }
 
     private fun generateAndSaveAcademyReminders(events: List<Event>, department: String): List<AcademyReminderDocument> {
         val fullNameSlackIdsMap = getSlackIds(events)
