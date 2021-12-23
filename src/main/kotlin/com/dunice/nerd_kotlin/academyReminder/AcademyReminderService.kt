@@ -58,7 +58,7 @@ class AcademyReminderService(
 //    fun handleMultipleEvents() {
 
 //        this.addReminders(listOf(
-//            listOf("2021-11-27T09:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
+//            listOf("2021-12-23T13:40:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
 //            listOf("2021-11-27T21:00:00.000Z","Геннадий Герасименков","Предопрос","Максим Сметанкин", "Евгений Холодов"),
 //            listOf("2021-11-27T21:00:00.000Z","Кирилл Коломейцев","Опрос","Валерий Попов", "Евгений Холодов"),
 //        ), "java")
@@ -121,7 +121,7 @@ class AcademyReminderService(
                 }
 
                 acc.add(AcademyReminderDocument(
-                    event.date.minusMinutes(academyReminderNotifyBeforeMinutes).toInstant(),
+                    event.date.minusMinutes(notifyBeforeMinutes).toInstant(),
                     messageBuilder.build(),
                     fullNameSlackIdsMap.getOrElse(it) {
                         throw RuntimeException("$it не была найден в fullNameSlackIdsMap")
