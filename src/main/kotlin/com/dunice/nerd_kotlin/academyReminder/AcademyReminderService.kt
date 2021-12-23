@@ -98,20 +98,25 @@ class AcademyReminderService(
 
             event.recipients.forEach {
                 val messageBuilder = MessageBuilder().hey().nextLine()
+                val notifyBeforeMinutes: Long = if (now > event.date.minusMinutes(academyReminderNotifyBeforeMinutes)) {
+                    (event.date.toEpochSecond() - now.toEpochSecond()) / 60
+                } else {
+                    academyReminderNotifyBeforeMinutes
+                }
                 when (it) {
                     event.trainee -> {
                         messageBuilder
-                            .passEventReminder(event.eventType,event.interviewer)
+                            .passEventReminder(event.eventType,event.interviewer, notifyBeforeMinutes)
                     }
 
                     event.interviewer -> {
                         messageBuilder
-                            .helpWithEventReminder(event.eventType, event.trainee)
+                            .helpWithEventReminder(event.eventType, event.trainee, notifyBeforeMinutes)
                     }
 
                     else -> {
                         messageBuilder
-                            .checkEventReminder(event.eventType, event.trainee, event.interviewer)
+                            .checkEventReminder(event.eventType, event.trainee, event.interviewer, notifyBeforeMinutes)
                     }
                 }
 

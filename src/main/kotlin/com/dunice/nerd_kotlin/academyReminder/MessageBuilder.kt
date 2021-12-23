@@ -14,18 +14,18 @@ data class MessageBuilder(
         return this
     }
 
-    fun passEventReminder(eventType: String, interviewer: String): MessageBuilder {
-        parts.append("\uD83D\uDCDAЧерез $academyReminderNotifyBeforeMinutes минут у тебя ${eventType.lowercase()} у $interviewer")
+    fun passEventReminder(eventType: String, interviewer: String, notifyBeforeMinutes: Long): MessageBuilder {
+        parts.append("\uD83D\uDCDAЧерез $notifyBeforeMinutes минут у тебя ${eventType.lowercase()} у $interviewer")
         return this
     }
 
-    fun helpWithEventReminder(eventType: String, trainee: String): MessageBuilder {
-        parts.append("\uD83D\uDCDAЧерез $academyReminderNotifyBeforeMinutes минут тебе нужно провести ${eventType.lowercase()} у $trainee")
+    fun helpWithEventReminder(eventType: String, trainee: String, notifyBeforeMinutes: Long): MessageBuilder {
+        parts.append("\uD83D\uDCDAЧерез $notifyBeforeMinutes минут тебе нужно провести ${eventType.lowercase()} у $trainee")
         return this
     }
 
-    fun checkEventReminder(eventType: String, trainee: String, interviewer: String) : MessageBuilder {
-        parts.append("\uD83D\uDCDAЧерез $academyReminderNotifyBeforeMinutes минут ${eventType.lowercase()} у $trainee с $interviewer")
+    fun checkEventReminder(eventType: String, trainee: String, interviewer: String, notifyBeforeMinutes: Long) : MessageBuilder {
+        parts.append("\uD83D\uDCDAЧерез $notifyBeforeMinutes минут ${eventType.lowercase()} у $trainee с $interviewer")
         return this
     }
 
