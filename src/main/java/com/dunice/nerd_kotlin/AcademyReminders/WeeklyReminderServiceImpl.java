@@ -4,8 +4,6 @@ import com.dunice.nerd_kotlin.academyReminder.MessageBuilder;
 import com.dunice.nerd_kotlin.academyReminder.types.Event;
 import com.dunice.nerd_kotlin.common.db.WeeklyIsSendDocument;
 import com.dunice.nerd_kotlin.common.db.WeeklyIsSendRepository;
-import com.dunice.nerd_kotlin.common.errors.CustomException;
-import com.dunice.nerd_kotlin.common.errors.ErrorStringConstantsKt;
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,8 +30,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
     @Override
     public void generateWeeklyReminders(List<Event> events, String department) {
 
-//        final var ids = slackService.getSlackIds(events);
-        final var ids = new HashMap<String, String>();
+        final var ids = slackService.getSlackIds(events);
         final var date = events.get(0).getDate();
         final var fullWeekNumberYear = String.valueOf(date.get(WeekFields.ISO.weekOfYear())) + String.valueOf(date.getYear());
         final var weeklyIsSend = weeklyIsSendRepository.findOneByWeekNumber(fullWeekNumberYear);
@@ -107,8 +104,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                     }
                 });
             }
-            slackService.postMessage("U021E7FCCPP", messageBuilder.build());
-//                slackService.postMessage(ids.get(fullName), messageBuilder.build());
+                slackService.postMessage(ids.get(fullName), messageBuilder.build());
         }
     }
 }
