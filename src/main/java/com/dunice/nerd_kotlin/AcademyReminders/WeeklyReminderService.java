@@ -13,7 +13,6 @@ public interface WeeklyReminderService {
 
     public Map<String, Map<DayOfWeek, List<Event>>> generateSchedule(List<Event> events);
 
-//    public void generateAndSendMessage(Map<String, Map<DayOfWeek, List<Event>>> schedule);
     public void generateAndSendMessage(Map<String, Map<DayOfWeek, List<Event>>> schedule, Map<String, String> ids);
 
 }
