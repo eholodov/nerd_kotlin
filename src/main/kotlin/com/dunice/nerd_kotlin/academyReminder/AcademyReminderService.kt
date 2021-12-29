@@ -79,7 +79,7 @@ class AcademyReminderService(
 //    }
 
     private fun generateAndSaveAcademyReminders(events: List<Event>, department: String): List<AcademyReminderDocument> {
-        val fullNameSlackIdsMap = getSlackIds(events)
+        val fullNameSlackIdsMap = slackServiceImpl.getSlackIds(events)
         val now = OffsetDateTime.now()
 
         val reminders = listOf(
@@ -217,38 +217,6 @@ class AcademyReminderService(
 
             acc
         }.toList()
-    }
-
-    fun getSlackIds(data: List<Event>): MutableMap<String, String> {
-        val recipients = data.fold(mutableSetOf<String>()) { acc, item ->
-
-            item.recipients.forEach {
-                acc.add(it)
-            }
-            acc
-        }
-
-        var slackIdsFullName = membersRepository.findByFullNameIn(recipients.toList())
-
-        if (recipients.size > slackIdsFullName.size) {
-            slackServiceImpl.getUsersFromSlackV2()
-            slackIdsFullName = membersRepository.findByFullNameIn(recipients.toList())
-            if (recipients.size > slackIdsFullName.size) {
-                val diff = recipients.filter { recipient ->
-                    val element = slackIdsFullName.find { it.getFullName() == recipient  }
-
-                    element == null
-                }
-
-                throw RuntimeException("Не были найдены slack id для пользователе ${diff.joinToString(" ")}")
-            }
-        }
-
-        return slackIdsFullName.fold(mutableMapOf()) { acc, item ->
-
-            acc[item.getFullName()] = item.getSlackId()
-            acc
-        }
     }
 
     private fun generateDateToSend(dateOfElem: OffsetDateTime): OffsetDateTime {
