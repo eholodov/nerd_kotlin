@@ -106,25 +106,30 @@ class AcademyReminderService(
 
             event.recipients.forEach {
                 val messageBuilder = MessageBuilder().hey().nextLine()
+                val notifyBeforeMinutes: Long = if (now > event.date.minusMinutes(academyReminderNotifyBeforeMinutes)) {
+                    (event.date.toEpochSecond() - now.toEpochSecond()) / 60
+                } else {
+                    academyReminderNotifyBeforeMinutes
+                }
                 when (it) {
                     event.trainee -> {
                         messageBuilder
-                            .passEventReminder(event.eventType,event.interviewer)
+                            .passEventReminder(event.eventType,event.interviewer, notifyBeforeMinutes)
                     }
 
                     event.interviewer -> {
                         messageBuilder
-                            .helpWithEventReminder(event.eventType, event.trainee)
+                            .helpWithEventReminder(event.eventType, event.trainee, notifyBeforeMinutes)
                     }
 
                     else -> {
                         messageBuilder
-                            .checkEventReminder(event.eventType, event.trainee, event.interviewer)
+                            .checkEventReminder(event.eventType, event.trainee, event.interviewer, notifyBeforeMinutes)
                     }
                 }
 
                 acc.add(AcademyReminderDocument(
-                    event.date.minusMinutes(academyReminderNotifyBeforeMinutes).toInstant(),
+                    event.date.minusMinutes(notifyBeforeMinutes).toInstant(),
                     messageBuilder.build(),
                     fullNameSlackIdsMap.getOrElse(it) {
                         throw RuntimeException("$it не была найден в fullNameSlackIdsMap")

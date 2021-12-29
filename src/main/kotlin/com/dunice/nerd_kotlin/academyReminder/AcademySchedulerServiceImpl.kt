@@ -43,7 +43,9 @@ class AcademySchedulerServiceImpl(
                     lock
                 )
                 scheduledTasks!!.add(task)
-                Timer(false).schedule(task, it.dateToSend.toEpochMilli() - Instant.now().toEpochMilli())
+
+                val delay = it.dateToSend.toEpochMilli() - Instant.now().toEpochMilli()
+                Timer(false).schedule(task, if (delay > 0) delay else 0)
             }
 
         } finally {
