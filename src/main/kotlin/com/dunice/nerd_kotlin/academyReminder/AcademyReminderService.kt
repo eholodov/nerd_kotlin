@@ -6,6 +6,8 @@ import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
+import org.springframework.context.event.ContextRefreshedEvent
+import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -21,6 +23,7 @@ class AcademyReminderService(
 ) {
 
     fun addReminders(data: List<List<String>>, department: String) {
+
         val events = data.fold(mutableListOf<Event>()) { acc, item ->
 
             val parsedDate = OffsetDateTime.parse(item[0])
@@ -51,19 +54,21 @@ class AcademyReminderService(
 
         academyReminderRepository.deleteAllByIsSentAndDepartment(false, department)
         academySchedulerServiceImpl.cancelScheduledTasksByDepartment(department)
+        weeklyReminderService.generateWeeklyReminders(events, department);
         val reminders = generateAndSaveAcademyReminders(events, department)
 
-        weeklyReminderService.generateWeeklyReminders(events, department);
         academySchedulerServiceImpl.schedule(reminders, department)
     }
 // For testing
 //    @EventListener(classes = [ContextRefreshedEvent::class])
 //    fun handleMultipleEvents() {
-
+//
 //        this.addReminders(listOf(
-//            listOf("2021-11-27T09:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
-//            listOf("2021-11-27T21:00:00.000Z","Геннадий Герасименков","Предопрос","Максим Сметанкин", "Евгений Холодов"),
-//            listOf("2021-11-27T21:00:00.000Z","Кирилл Коломейцев","Опрос","Валерий Попов", "Евгений Холодов"),
+//            listOf("2021-11-26T09:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
+//            listOf("2021-11-23T21:00:00.000Z","Геннадий Герасименков","Предопрос","Максим Сметанкин", "Евгений Холодов"),
+//            listOf("2021-11-26T21:00:00.000Z","Кирилл Коломейцев","Опрос","Валерий Попов", "Евгений Холодов Мария Власова"),
+//            listOf("2021-11-24T21:00:00.000Z","Дмитрий Коровяков","Опрос","Валерий Попов", "Евгений Холодов"),
+//            listOf("2021-11-25T21:00:00.000Z","Максим Сметанкин","Опрос","Валерий Попов", "Евгений Холодов"),
 //        ), "java")
 
 //        this.addReminders(listOf(
@@ -214,7 +219,7 @@ class AcademyReminderService(
         }.toList()
     }
 
-    private fun getSlackIds(data: List<Event>): MutableMap<String, String> {
+    fun getSlackIds(data: List<Event>): MutableMap<String, String> {
         val recipients = data.fold(mutableSetOf<String>()) { acc, item ->
 
             item.recipients.forEach {
