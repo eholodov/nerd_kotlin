@@ -1,5 +1,6 @@
 package com.dunice.nerd_kotlin.services.slack
 
+import com.dunice.nerd_kotlin.academyReminder.types.Event
 import com.dunice.nerd_kotlin.common.db.MemberDocument
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.common.errors.CustomException
@@ -86,6 +87,38 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
             documents.add(member)
             mongoTemplate.upsert(Query().addCriteria(Criteria.where("email").`is`(member.email)),
                 Update().set("slackId", member.slackId).set("fullName", member.fullName), "slackIds")
+        }
+    }
+
+    fun getSlackIds(data: List<Event>): MutableMap<String, String> {
+        val recipients = data.fold(mutableSetOf<String>()) { acc, item ->
+
+            item.recipients.forEach {
+                acc.add(it)
+            }
+            acc
+        }
+
+        var slackIdsFullName = membersRepository.findByFullNameIn(recipients.toList())
+
+        if (recipients.size > slackIdsFullName.size) {
+            getUsersFromSlackV2()
+            slackIdsFullName = membersRepository.findByFullNameIn(recipients.toList())
+            if (recipients.size > slackIdsFullName.size) {
+                val diff = recipients.filter { recipient ->
+                    val element = slackIdsFullName.find { it.getFullName() == recipient  }
+
+                    element == null
+                }
+
+                throw RuntimeException("Не были найдены slack id для пользователе ${diff.joinToString(" ")}")
+            }
+        }
+
+        return slackIdsFullName.fold(mutableMapOf()) { acc, item ->
+
+            acc[item.getFullName()] = item.getSlackId()
+            acc
         }
     }
 

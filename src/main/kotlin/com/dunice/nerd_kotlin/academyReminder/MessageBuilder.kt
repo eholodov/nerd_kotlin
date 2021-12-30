@@ -1,5 +1,9 @@
 package com.dunice.nerd_kotlin.academyReminder
 
+import com.dunice.nerd_kotlin.common.utils.getCyrillicDayOfWeek
+import java.time.DayOfWeek
+
+
 data class MessageBuilder(
     val parts: StringBuilder = StringBuilder()
 ) {
@@ -47,8 +51,35 @@ data class MessageBuilder(
         return this
     }
 
+    fun passWeeklyEvent(eventType: String, interviewer: String, time: String) : MessageBuilder {
+        parts.append("> \uD83D\uDCDAПройти ${eventType.lowercase()} у $interviewer")
+        addOptionalTime(time)
+        return this
+    }
+
     fun helpWithEvent(eventType: String, trainee: String, time: String) : MessageBuilder {
         parts.append("\uD83D\uDCDAПровести ${eventType.lowercase()} у $trainee")
+        addOptionalTime(time)
+
+        return this
+    }
+
+    fun conductWeeklyEvent(eventType: String, trainee: String, time: String) : MessageBuilder {
+        parts.append("> \uD83D\uDCDAПровести ${eventType.lowercase()} у $trainee")
+        addOptionalTime(time)
+
+        return this
+    }
+
+    fun watchEvent(eventType: String, trainee: String, interviewer: String, time: String): MessageBuilder {
+        parts.append("\uD83D\uDCDA$eventType у $trainee проводит $interviewer")
+        addOptionalTime(time)
+
+        return this
+    }
+
+    fun watchWeeklyEvent(eventType: String, trainee: String, interviewer: String, time: String): MessageBuilder {
+        parts.append("> \uD83D\uDCDA$eventType у $trainee проводит $interviewer")
         addOptionalTime(time)
 
         return this
@@ -64,6 +95,18 @@ data class MessageBuilder(
 
     fun todayEvents(): MessageBuilder {
         parts.append("Твои события на сегодня")
+
+        return this
+    }
+
+    fun weeklyEvents(): MessageBuilder {
+        parts.append("Расписание событий на эту неделю:")
+
+        return this
+    }
+
+    fun addDayOfWeek(dayOfWeek: DayOfWeek, fullDate: String): MessageBuilder{
+        parts.append(getCyrillicDayOfWeek(dayOfWeek), " ($fullDate)")
 
         return this
     }
