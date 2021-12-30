@@ -45,33 +45,23 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
     @Override
     public Map<String, Map<DayOfWeek, List<Event>>> generateSchedule(List<Event> events) {
-        final var employeeEvents = new HashMap<String, List<Event>>();
+
+        final var employeeDayEvents = new HashMap<String, Map<DayOfWeek, List<Event>>>();
 
         events.forEach((event) -> {
             event.getRecipients().forEach((recipient) -> {
 
-                if (!employeeEvents.containsKey(recipient)) {
-                    employeeEvents.put(recipient, new ArrayList<Event>());
+                if (!employeeDayEvents.containsKey(recipient)) {
+                    employeeDayEvents.put(recipient, new HashMap<>());
                 }
-                employeeEvents.get(recipient).add(event);
+                final var dayOfWeek = event.getDate().getDayOfWeek();
+
+                if (!employeeDayEvents.get(recipient).containsKey(dayOfWeek)) {
+                    employeeDayEvents.get(recipient).put(dayOfWeek, new ArrayList<>());
+                }
+                employeeDayEvents.get(recipient).get(dayOfWeek).add(event);
             });
         });
-
-        final var employeeDayEvents = new HashMap<String, Map<DayOfWeek, List<Event>>>();
-
-        for (Map.Entry<String, List<Event>> entry : employeeEvents.entrySet()) {
-
-            if (!employeeDayEvents.containsKey(entry.getKey())) {
-                employeeDayEvents.put(entry.getKey(), new HashMap<>());
-            }
-            entry.getValue().forEach((event) -> {
-                final var dayOfWeek = event.getDate().getDayOfWeek();
-                if (!employeeDayEvents.get(entry.getKey()).containsKey(dayOfWeek)) {
-                    employeeDayEvents.get(entry.getKey()).put(dayOfWeek,  new ArrayList<>());
-                }
-                employeeDayEvents.get(entry.getKey()).get(dayOfWeek).add(event);
-            });
-        }
         return employeeDayEvents;
     }
 
