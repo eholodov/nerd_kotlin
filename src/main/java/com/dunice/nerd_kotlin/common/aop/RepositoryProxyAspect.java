@@ -4,6 +4,7 @@ import lombok.Data;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -11,6 +12,7 @@ import java.util.*;
 @Aspect
 @Component
 @Data
+@Profile("dev")
 public class RepositoryProxyAspect {
 
     @Around("execution(public * *(..)) && @annotation(com.dunice.nerd_kotlin.common.aop.RepositoryProxy)")
