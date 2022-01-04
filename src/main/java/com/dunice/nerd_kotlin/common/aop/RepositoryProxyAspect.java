@@ -1,5 +1,6 @@
 package com.dunice.nerd_kotlin.common.aop;
 
+import com.dunice.nerd_kotlin.common.db.projections.SlackIdFullNameProjectionImpl;
 import lombok.Data;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -8,6 +9,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Aspect
 @Component
@@ -16,16 +18,10 @@ import java.util.*;
 public class RepositoryProxyAspect {
 
     @Around("execution(public * *(..)) && @annotation(com.dunice.nerd_kotlin.common.aop.RepositoryProxy)")
-    public List<String> RepositoryProxyAspectBefore(ProceedingJoinPoint joinPoint) throws Throwable {
-        System.out.println("START");
+    public List<SlackIdFullNameProjectionImpl> RepositoryProxyAspectBefore(ProceedingJoinPoint joinPoint) {
         Object[] a = joinPoint.getArgs();
-//        System.out.println("a " + a);
-//        throw new RuntimeException("qweqweqweqweqweqweqw");
-//        int count = 0;
-//        if (a!=null) count = (int) a[0].toString().chars().filter(e->e==',').count() + 1;
-//        List<String> result = new ArrayList<>();
-//        for (int i=0; i<count; i++) {result.add(null);}
-        return List.of("qwe");
+
+        return ((List<String>) a[0]).stream().map((item) -> new SlackIdFullNameProjectionImpl(item, item)).collect(Collectors.toList());
     }
 
 }

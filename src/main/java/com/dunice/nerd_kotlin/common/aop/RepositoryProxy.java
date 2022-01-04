@@ -8,8 +8,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RepositoryProxy {
-
-    String message() default "";
-}
+public @interface RepositoryProxy {}
 
