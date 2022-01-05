@@ -1,5 +1,6 @@
 package com.dunice.nerd_kotlin.AcademyReminders;
 
+import com.dunice.nerd_kotlin.AcademyReminders.types.EventDTO;
 import com.dunice.nerd_kotlin.academyReminder.types.Event;
 import com.dunice.nerd_kotlin.common.errors.CustomException;
 
@@ -11,7 +12,7 @@ public interface WeeklyReminderService {
 
     public void generateWeeklyReminders(List<Event> events, String department) throws CustomException;
 
-    public Map<String, Map<DayOfWeek, List<Event>>> generateSchedule(List<Event> events);
+    public Map<String, Map<DayOfWeek, List<EventDTO>>> generateSchedule(List<Event> events);
 
     public void generateAndSendMessage(Map<String, Map<DayOfWeek, List<Event>>> schedule, Map<String, String> ids);
 
