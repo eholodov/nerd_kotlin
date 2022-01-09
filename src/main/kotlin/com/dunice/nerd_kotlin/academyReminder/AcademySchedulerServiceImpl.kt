@@ -4,8 +4,10 @@ import com.dunice.nerd_kotlin.academyReminder.types.AcademyReminderTask
 import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
+import org.springframework.context.annotation.Profile
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
+import org.springframework.core.env.Environment
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -19,7 +21,8 @@ import java.util.concurrent.locks.ReentrantLock
 class AcademySchedulerServiceImpl(
     val academyReminderRepository: AcademyReminderRepository,
     val mongoTemplate: MongoTemplate,
-    val slackServiceImpl: SlackServiceImpl
+    val slackServiceImpl: SlackServiceImpl,
+    val env: Environment
 ) {
     @Volatile var departmentScheduler = mutableMapOf<String, MutableList<AcademyReminderTask>>()
     private val lock = ReentrantLock()
@@ -88,8 +91,13 @@ class AcademySchedulerServiceImpl(
         this.schedule(academyReminderDocuments, department)
     }
 
+    @Profile("prod")
     @EventListener(classes =  [ContextRefreshedEvent::class] )
     fun handleTasksFromDb() {
+
+        if (env.activeProfiles.contains("dev")) {
+            return
+        }
 
         val data = mongoTemplate.findDistinct(
             Query(Criteria.where("isSent").`is`(false)),

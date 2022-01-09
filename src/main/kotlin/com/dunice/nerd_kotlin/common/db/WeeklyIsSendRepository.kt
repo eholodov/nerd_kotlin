@@ -5,8 +5,8 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface WeeklyIsSendRepository : MongoRepository<WeeklyIsSendDocument, String> {
+interface WeeklyIsSendRepository : MongoRepository<WeeklySentDocument, String> {
 
-    fun findOneByWeekNumber(weekNumber: String) : Optional<WeeklyIsSendDocument>
+    fun findOneByWeekNumberAndDepartment(weekNumber: String, department: String) : Optional<WeeklySentDocument>
 
 }
