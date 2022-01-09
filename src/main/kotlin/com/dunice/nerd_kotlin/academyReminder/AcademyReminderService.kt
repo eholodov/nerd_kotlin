@@ -52,34 +52,41 @@ class AcademyReminderService(
             acc
         }
 
+        val fullNameSlackIdsMap = slackServiceImpl.getSlackIds(events)
+
         academyReminderRepository.deleteAllByIsSentAndDepartment(false, department)
         academySchedulerServiceImpl.cancelScheduledTasksByDepartment(department)
-        weeklyReminderService.generateWeeklyReminders(events, department);
-        val reminders = generateAndSaveAcademyReminders(events, department)
+        weeklyReminderService.sendWeeklyReminders(events, department, fullNameSlackIdsMap)
+        val reminders = generateAndSaveAcademyReminders(events, department, fullNameSlackIdsMap)
 
         academySchedulerServiceImpl.schedule(reminders, department)
     }
 // For testing
-//    @EventListener(classes = [ContextRefreshedEvent::class])
-//    fun handleMultipleEvents() {
+    @EventListener(classes = [ContextRefreshedEvent::class])
+    fun handleMultipleEvents() {
 //
-//        this.addReminders(listOf(
-//            listOf("2022-11-26T09:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
+        this.addReminders(listOf(
+            listOf("2022-11-26T16:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
+//            listOf("2022-11-27T15:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
+//            listOf("2022-11-28T15:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
+//            listOf("2022-11-26T10:00:00.000Z","Дмитрий Коровяков","Предопрос", "Максим Сметанкин", "Евгений Холодов"),
 //            listOf("2022-11-23T21:00:00.000Z","Геннадий Герасименков","Предопрос","Максим Сметанкин", "Евгений Холодов"),
 //            listOf("2022-11-26T21:00:00.000Z","Кирилл Коломейцев","Опрос","Валерий Попов", "Евгений Холодов Мария Власова"),
 //            listOf("2022-11-24T21:00:00.000Z","Дмитрий Коровяков","Опрос","Валерий Попов", "Евгений Холодов"),
 //            listOf("2022-11-25T21:00:00.000Z","Максим Сметанкин","Опрос","Валерий Попов", "Евгений Холодов"),
-//        ), "java")
+        ), "java")
 
 //        this.addReminders(listOf(
 //            listOf("2021-11-29T13:37:00.000Z","Евгений Холодов","Предопрос111", "Евгений Холодов", "Евгений Холодов"),
 //            listOf("2021-11-29T13:36:00.000Z","Евгений Холодов","Предопрос222","Евгений Холодов", "Евгений Холодов"),
 //            listOf("2021-11-29T13:35:00.000Z","Стажер Холодов","Опрос","Интервьюер Холодов", "Евгений Холодов"),
 //        ), "java")
-//    }
+    }
 
-    private fun generateAndSaveAcademyReminders(events: List<Event>, department: String): List<AcademyReminderDocument> {
-        val fullNameSlackIdsMap = slackServiceImpl.getSlackIds(events)
+    private fun generateAndSaveAcademyReminders(
+        events: List<Event>,
+        department: String,
+        fullNameSlackIdsMap: MutableMap<String, String>, ): List<AcademyReminderDocument> {
 
         val now = OffsetDateTime.now()
 
@@ -217,7 +224,7 @@ class AcademyReminderService(
                     fullNameSlackIdsMap.getOrElse(name) {
                         throw RuntimeException("$name не была найден в fullNameSlackIdsMap")
                     },
-                    department
+                    department,
                 ))
             }
 

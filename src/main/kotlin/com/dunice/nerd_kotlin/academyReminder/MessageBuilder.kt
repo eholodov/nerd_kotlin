@@ -45,6 +45,12 @@ data class MessageBuilder(
         return this
     }
 
+    fun doubleNextLine(): MessageBuilder {
+        parts.append("\n\n")
+
+        return this
+    }
+
     fun passEvent(eventType: String, interviewer: String, time: String) : MessageBuilder {
         parts.append("\uD83D\uDCDAПройти ${eventType.lowercase()} у $interviewer")
         addOptionalTime(time)
@@ -79,7 +85,7 @@ data class MessageBuilder(
     }
 
     fun watchWeeklyEvent(eventType: String, trainee: String, interviewer: String, time: String): MessageBuilder {
-        parts.append("> \uD83D\uDCDA$eventType у $trainee проводит $interviewer")
+        parts.append("> \uD83D\uDCDA$eventType у $trainee, проводит $interviewer")
         addOptionalTime(time)
 
         return this
@@ -117,5 +123,24 @@ data class MessageBuilder(
         }
     }
 
+    fun diffMessage(): MessageBuilder {
+        parts.append("Изменения в расписании!")
+
+        return this
+    }
+
+    fun diffRemovedEvents(): MessageBuilder {
+        parts.append("*Удаленные события!*")
+
+        return this
+    }
+
+    fun diffAddedEvents(): MessageBuilder {
+        parts.append("*Добавленные события!*")
+
+        return this
+    }
     fun build(): String = parts.toString()
+
+
 }

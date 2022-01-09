@@ -1,5 +1,6 @@
 package com.dunice.nerd_kotlin.common.configs
 
+import com.dunice.nerd_kotlin.common.converters.*
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.client.MongoClient
@@ -9,6 +10,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration
 import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions
+import java.util.Arrays.asList
 
 
 @Configuration
@@ -31,5 +34,15 @@ class MongoConfig : AbstractMongoClientConfiguration() {
     @Bean
     fun mongoTemplate(): MongoTemplate? {
         return MongoTemplate(mongo(), databaseName)
+    }
+
+    @Bean
+    override fun customConversions(): MongoCustomConversions {
+        return MongoCustomConversions(
+            asList(
+                OffsetDateTimeToDocumentConverter(),
+                DocumentToOffsetDateTimeConverter(),
+            )
+        )
     }
 }

@@ -21,7 +21,7 @@ public class RepositoryProxyAspect {
     public List<SlackIdFullNameProjectionImpl> RepositoryProxyAspectBefore(ProceedingJoinPoint joinPoint) {
         Object[] a = joinPoint.getArgs();
 
-        return ((List<String>) a[0]).stream().map((item) -> new SlackIdFullNameProjectionImpl(item, item)).collect(Collectors.toList());
+        return ((List<String>) a[0]).stream().map((item) -> new SlackIdFullNameProjectionImpl(item, String.format("slackId's mock for %s", item))).collect(Collectors.toList());
     }
 
 }
