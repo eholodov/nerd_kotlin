@@ -137,7 +137,6 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 if (!employeeDayEvents.containsKey(recipient)) {
                     employeeDayEvents.put(recipient, new HashMap<>());
                 }
-            System.out.println(event.getDate());
                 final var dayOfWeek = event.getDate().plusHours(3).getDayOfWeek();
 
                 if (!employeeDayEvents.get(recipient).containsKey(dayOfWeek)) {
