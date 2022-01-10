@@ -31,9 +31,9 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         this.slackService = slackService;
         this.weeklyIsSendRepository = weeklyIsSendRepository;
     }
-    
+
     public void sendWeeklyReminders(List<Event> events, String department, Map<String, String> fullNameSlackIdsMap) {
-        final var date = events.get(0).getDate();
+        final var date = events.get(0).getDate().plusHours(3);
         final var fullWeekNumberYear = String.valueOf(date.get(WeekFields.ISO.weekOfYear())) + String.valueOf(date.getYear());
         final var currentWeek = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(fullWeekNumberYear, department);
         final var employeeDayEvents = generateSchedule(events);
@@ -137,7 +137,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 if (!employeeDayEvents.containsKey(recipient)) {
                     employeeDayEvents.put(recipient, new HashMap<>());
                 }
-                final var dayOfWeek = event.getDate().getDayOfWeek();
+                final var dayOfWeek = event.getDate().plusHours(3).getDayOfWeek();
 
                 if (!employeeDayEvents.get(recipient).containsKey(dayOfWeek)) {
                     employeeDayEvents.get(recipient).put(dayOfWeek, new ArrayList<>());
@@ -160,7 +160,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             for (Map.Entry<DayOfWeek, List<Event>> data: treeMap.entrySet()) {
                 final var dataKey= data.getKey();
-                final var ii = data.getValue().stream().map(iter -> iter.getDate().format(DateTimeFormatter.ofPattern("dd.MM.yy"))).distinct().collect(Collectors.toList());
+                final var ii = data.getValue().stream().map(iter -> iter.getDate().plusHours(3).format(DateTimeFormatter.ofPattern("dd.MM.yy"))).distinct().collect(Collectors.toList());
 
                 messageBuilder.addDayOfWeek(dataKey, ii.iterator().next()).nextLine();
 
@@ -221,7 +221,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
         for (Map.Entry<DayOfWeek,  List<List<Event>>> data : entrySet) {
             final var dataKey = data.getKey();
-            final var ii = data.getValue().get(index).stream().map(iter -> iter.getDate().format(DateTimeFormatter.ofPattern("dd.MM.yy"))).distinct().collect(Collectors.toList());
+            final var ii = data.getValue().get(index).stream().map(iter -> iter.getDate().plusHours(3).format(DateTimeFormatter.ofPattern("dd.MM.yy"))).distinct().collect(Collectors.toList());
 
             if (ii.isEmpty()) {
                 continue;
