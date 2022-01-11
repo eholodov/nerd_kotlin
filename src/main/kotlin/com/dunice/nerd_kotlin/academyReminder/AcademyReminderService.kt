@@ -22,6 +22,8 @@ class AcademyReminderService(
     private val weeklyReminderService: WeeklyReminderService
 ) {
 
+
+
     fun addReminders(data: List<List<String>>, department: String) {
 
         val events = data.fold(mutableListOf<Event>()) { acc, item ->
