@@ -65,9 +65,6 @@ dependencies {
 	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt
 	implementation("io.jsonwebtoken:jjwt:0.9.1")
 
-//	// https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-//	implementation("org.slf4j:slf4j-api:1.7.32")
-
 
 	// https://mvnrepository.com/artifact/org.springframework.security/spring-security-crypto
 	implementation("org.springframework.security:spring-security-crypto:5.5.2")
