@@ -24,7 +24,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
     private final WeeklyIsSendRepository weeklyIsSendRepository;
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-    Logger logger = LoggerFactory.getLogger(WeeklyReminderServiceImpl.class);
+    private static Logger logger = LoggerFactory.getLogger(WeeklyReminderServiceImpl.class.getName());
 
     @Autowired
     public WeeklyReminderServiceImpl(SlackServiceImpl slackService,
