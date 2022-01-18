@@ -6,11 +6,13 @@ import com.dunice.nerd_kotlin.academyReminder.types.Event;
 import com.dunice.nerd_kotlin.common.db.WeeklySentDocument;
 import com.dunice.nerd_kotlin.common.db.WeeklyIsSendRepository;
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl;
+import com.google.api.client.util.DateTime;
 import kotlin.Pair;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
@@ -43,7 +45,12 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(fullWeekNumberYear, department, events);
             weeklyIsSendRepository.save(weeklyIsSendDocument);
         } else {
-            val diffs = generateDiffs(events, currentWeek.get().getEvents());
+
+            var now = OffsetDateTime.now();
+            var newCorrectedEvents = correctEvents(events, now);
+            var oldCorrectedEvents = correctEvents(Objects.requireNonNull(currentWeek.get().getEvents()), now);
+
+            val diffs = generateDiffs(newCorrectedEvents, oldCorrectedEvents);
 
             if (diffs == null) return;
 
@@ -56,12 +63,19 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             val messages = generateDiffMessages(mergedEventsSchedule, fullNameSlackIdsMap);
 
             val currenWeekData = currentWeek.get();
-            currenWeekData.setEvents(events);
+            currenWeekData.setEvents(newCorrectedEvents);
             weeklyIsSendRepository.save(currenWeekData);
 
             messages.forEach((elem) -> slackService.postMessage(elem.component1(), elem.component2()));
 
         }
+    }
+
+    public List<Event> correctEvents (List<Event> events, OffsetDateTime now) {
+
+       return events.stream()
+               .filter(event -> event.getDate().isAfter(now))
+               .collect(Collectors.toList());
     }
 
     private Map<String, Map<DayOfWeek, List<List<Event>>>> mergeRemovedAddedEvents(
@@ -137,6 +151,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 if (!employeeDayEvents.containsKey(recipient)) {
                     employeeDayEvents.put(recipient, new HashMap<>());
                 }
+
                 final var dayOfWeek = event.getDate().plusHours(3).getDayOfWeek();
 
                 if (!employeeDayEvents.get(recipient).containsKey(dayOfWeek)) {
