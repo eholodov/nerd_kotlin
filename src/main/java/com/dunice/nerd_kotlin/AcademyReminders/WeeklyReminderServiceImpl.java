@@ -51,7 +51,12 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(fullWeekNumberYear, department, events);
             weeklyIsSendRepository.save(weeklyIsSendDocument);
         } else {
-            val diffs = generateDiffs(events, currentWeek.get().getEvents());
+
+            val now = OffsetDateTime.now();
+            val newCorrectedEvents = correctEvents(events, now);
+            val oldCorrectedEvents = correctEvents(Objects.requireNonNull(currentWeek.get().getEvents()), now);
+
+            val diffs = generateDiffs(newCorrectedEvents, oldCorrectedEvents);
 
             if (diffs == null) return;
 
@@ -64,12 +69,19 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             val messages = generateDiffMessages(mergedEventsSchedule, fullNameSlackIdsMap);
 
             val currenWeekData = currentWeek.get();
-            currenWeekData.setEvents(events);
+            currenWeekData.setEvents(newCorrectedEvents);
             weeklyIsSendRepository.save(currenWeekData);
 
             messages.forEach((elem) -> slackService.postMessage(elem.component1(), elem.component2()));
         }
         logger.info("<! method sendWeeklyReminders in class {}", WeeklyReminderServiceImpl.class.getSimpleName());
+    }
+
+    public List<Event> correctEvents (List<Event> events, OffsetDateTime now) {
+
+       return events.stream()
+               .filter(event -> event.getDate().isAfter(now))
+               .collect(Collectors.toList());
     }
 
     private Map<String, Map<DayOfWeek, List<List<Event>>>> mergeRemovedAddedEvents(
@@ -168,6 +180,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 if (!employeeDayEvents.containsKey(recipient)) {
                     employeeDayEvents.put(recipient, new HashMap<>());
                 }
+
                 final var dayOfWeek = event.getDate().plusHours(3).getDayOfWeek();
 
                 if (!employeeDayEvents.get(recipient).containsKey(dayOfWeek)) {
