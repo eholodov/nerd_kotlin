@@ -4,6 +4,7 @@ import com.dunice.nerd_kotlin.academyReminder.types.AcademyReminderTask
 import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
@@ -26,9 +27,12 @@ class AcademySchedulerServiceImpl(
 ) {
     @Volatile var departmentScheduler = mutableMapOf<String, MutableList<AcademyReminderTask>>()
     private val lock = ReentrantLock()
-
+    private var logger = LoggerFactory.getLogger(this.javaClass);
 
     fun schedule(reminders: List<AcademyReminderDocument>, department: String) {
+
+        logger.info("-> method schedule in class {}, \n reminders {}, \n department", this.javaClass.simpleName, reminders, department)
+
         try {
             lock.lock()
 
@@ -54,10 +58,14 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
+        logger.info("<! method schedule in class {}", this.javaClass.simpleName)
     }
 
 
     fun cancelScheduledTasksByDepartment(department: String) {
+
+        logger.info("-> method cancelScheduledTasksByDepartment in class {} \n department {}", this.javaClass.simpleName, department)
+
         try {
             val scheduledTasks = departmentScheduler[department]
             lock.lock()
@@ -70,9 +78,13 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
+        logger.info("<! method cancelScheduledTasksByDepartment in class {}", this.javaClass.simpleName)
     }
 
     fun refreshAllReminders() {
+
+        logger.info("-> method refreshAllReminders in class {}", this.javaClass.simpleName)
+
         try {
             lock.lock()
             departmentScheduler.toList().forEach {
@@ -83,17 +95,25 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
+        logger.info("<! method refreshAllReminders in class {}", this.javaClass.simpleName)
     }
 
     fun startCrons(department: String) {
+
+        logger.info("-> method startCrons in class {} \n department {}", this.javaClass.simpleName, department)
+
         val academyReminderDocuments = academyReminderRepository.findAllByIsSentAndDepartmentAndDateToSendGreaterThan(false, department, Instant.now())
 
         this.schedule(academyReminderDocuments, department)
+
+        logger.info("<! method startCrons in class {}", this.javaClass.simpleName)
     }
 
     @Profile("prod")
     @EventListener(classes =  [ContextRefreshedEvent::class] )
     fun handleTasksFromDb() {
+
+        logger.info("-> method handleTasksFromDb in class {}", this.javaClass.simpleName)
 
         if (env.activeProfiles.contains("dev")) {
             return
@@ -106,9 +126,14 @@ class AcademySchedulerServiceImpl(
             String::class.java)
 
         data.forEach { startCrons(it) }
+
+        logger.info("<! method handleTasksFromDb in class {}", this.javaClass.simpleName)
     }
 
     fun getActiveReminders(): MutableMap<String, List<Instant>> {
+
+        logger.info("-> method getActiveReminders in class {}", this.javaClass.simpleName)
+
         return departmentScheduler.toList().fold(mutableMapOf()) {acc, item ->
 
             acc[item.first] = item.second.map { Instant.ofEpochMilli(it.scheduledExecutionTime()) }

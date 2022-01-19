@@ -6,11 +6,11 @@ import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
-import org.springframework.context.event.ContextRefreshedEvent
-import org.springframework.context.event.EventListener
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
+
 
 
 @Service
@@ -22,7 +22,11 @@ class AcademyReminderService(
     private val weeklyReminderService: WeeklyReminderService
 ) {
 
+    private var logger = LoggerFactory.getLogger(this.javaClass);
+
     fun addReminders(data: List<List<String>>, department: String) {
+
+        logger.info("-> method addReminders in class {}, \n data {}", this.javaClass.simpleName, data)
 
         val events = data.fold(mutableListOf<Event>()) { acc, item ->
 
@@ -60,6 +64,8 @@ class AcademyReminderService(
         val reminders = generateAndSaveAcademyReminders(events, department, fullNameSlackIdsMap)
 
         academySchedulerServiceImpl.schedule(reminders, department)
+
+        logger.info("<! method addReminders in class {}", this.javaClass.simpleName)
     }
 // For testing
 //    @EventListener(classes = [ContextRefreshedEvent::class])
@@ -88,6 +94,9 @@ class AcademyReminderService(
         department: String,
         fullNameSlackIdsMap: MutableMap<String, String>, ): List<AcademyReminderDocument> {
 
+        logger.info("-> method generateAndSaveAcademyReminders in class {}, \n events {}, \n department {}, \n fullNameSlackIdsMap {}",
+            this.javaClass.simpleName, events, department, fullNameSlackIdsMap)
+
         val now = OffsetDateTime.now()
 
         val reminders = listOf(
@@ -97,6 +106,7 @@ class AcademyReminderService(
 
         academyReminderRepository.saveAll(reminders)
 
+        logger.info("<! method generateAndSaveAcademyReminders in class {}", this.javaClass.simpleName)
         return reminders
 
     }
@@ -107,6 +117,9 @@ class AcademyReminderService(
         department: String,
         now: OffsetDateTime
     ): List<AcademyReminderDocument> {
+
+        logger.info("-> method generateReminders in class {} \n events {}, \n department {}, \n fullNameSlackIdsMap {}, \n now {}",
+            this.javaClass.simpleName, events, department, fullNameSlackIdsMap, now)
 
         return events
             .filter { it.date > now && (it.date.hour != 21 || it.date.minute != 0)}
@@ -156,6 +169,9 @@ class AcademyReminderService(
         department: String,
         now: OffsetDateTime
     ): List<AcademyReminderDocument> {
+
+        logger.info("-> method generateDailyReminders in class {}, \n events {}, \n fullNameSlackIdsMap {}, \n department {}, \n now {} ",
+            this.javaClass.simpleName, events, fullNameSlackIdsMap, department, now)
 
         return events
             .fold(mutableMapOf<String, MutableMap<OffsetDateTime, MutableList<Event>>>()) {acc, event ->
@@ -233,7 +249,6 @@ class AcademyReminderService(
     }
 
     private fun generateDateToSend(dateOfElem: OffsetDateTime): OffsetDateTime {
-
         // Added 3 hours for understanding is it must be sent in the next day
         val dateOfElemPlus3Hours = dateOfElem.plusHours(3)
         val validDate = if ( dateOfElemPlus3Hours.dayOfMonth > dateOfElem.dayOfMonth) dateOfElemPlus3Hours else dateOfElem

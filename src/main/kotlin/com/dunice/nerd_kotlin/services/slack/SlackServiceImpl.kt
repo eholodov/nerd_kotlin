@@ -10,6 +10,7 @@ import com.slack.api.Slack
 import com.slack.api.methods.kotlin_extension.request.chat.blocks
 import com.slack.api.methods.request.chat.ChatPostMessageRequest
 import com.slack.api.methods.request.users.UsersListRequest
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
@@ -24,6 +25,8 @@ import javax.annotation.PostConstruct
 class SlackServiceImpl(val mongoTemplate: MongoTemplate,
                        val membersRepository: MembersRepository)
     : SlackService {
+
+    private var logger = LoggerFactory.getLogger(this.javaClass);
 
     private val slack : Slack = Slack.getInstance()
 
@@ -66,6 +69,9 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
     }
 
     fun getUsersFromSlackV2() {
+
+        logger.info("-> method getUsersFromSlackV2 in class {}", this.javaClass.simpleName)
+
         val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
         throw CustomException(PERSON_NOT_FOUND)
         users.filter{!it.isDeleted}.forEach {
@@ -74,6 +80,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
             mongoTemplate.upsert(Query().addCriteria(Criteria.where("email").`is`(member.email)),
                 Update().set("slackId", member.slackId).set("fullName", member.fullName), "slackIds")
         }
+        logger.info("<! method getUsersFromSlackV2 in class {}", this.javaClass.simpleName)
     }
 
     @Deprecated("use getUsersFromSlack v2")
@@ -91,6 +98,9 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
     }
 
     fun getSlackIds(data: List<Event>): MutableMap<String, String> {
+
+        logger.info("-> method getSlackIds in class {}, \n data {}", this.javaClass.simpleName, data)
+
         val recipients = data.fold(mutableSetOf<String>()) { acc, item ->
 
             item.recipients.forEach {
@@ -114,6 +124,8 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
                 throw RuntimeException("Не были найдены slack id для пользователе ${diff.joinToString(" ")}")
             }
         }
+
+        logger.info("<! method getSlackIds in class {}", this.javaClass.simpleName)
 
         return slackIdsFullName.fold(mutableMapOf()) { acc, item ->
 
