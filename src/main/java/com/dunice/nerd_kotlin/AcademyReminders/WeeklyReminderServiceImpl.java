@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class WeeklyReminderServiceImpl implements WeeklyReminderService {
+
     private final SlackServiceImpl slackService;
     private final WeeklyIsSendRepository weeklyIsSendRepository;
 
@@ -43,18 +44,22 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 events);
 
         final var date = events.get(0).getDate().plusHours(3);
-        final var fullWeekNumberYear = String.valueOf(date.get(WeekFields.ISO.weekOfYear())) + String.valueOf(date.getYear());
-        final var currentWeek = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(fullWeekNumberYear, department);
-        final var employeeDayEvents = generateSchedule(events);
+
+        val currentWeekNumber = date.get(WeekFields.ISO.weekOfYear());
+        val currentWeekEvents = currentWeekEvents(events, currentWeekNumber);
+
+        final var numberOfWeekAndYear = String.valueOf(currentWeekNumber) + String.valueOf(date.getYear());
+        final var currentWeek = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numberOfWeekAndYear, department);
+        final var employeeDayEvents = generateSchedule(currentWeekEvents);
 
         if (currentWeek.isEmpty()) {
             generateAndSendWeeklyMessage(employeeDayEvents, fullNameSlackIdsMap);
-            WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(fullWeekNumberYear, department, events);
+            WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(numberOfWeekAndYear, department, currentWeekEvents);
             weeklyIsSendRepository.save(weeklyIsSendDocument);
         } else {
 
             val now = OffsetDateTime.now();
-            val newCorrectedEvents = correctEvents(events, now);
+            val newCorrectedEvents = correctEvents(currentWeekEvents, now);
             val oldCorrectedEvents = correctEvents(Objects.requireNonNull(currentWeek.get().getEvents()), now);
 
             val diffs = generateDiffs(newCorrectedEvents, oldCorrectedEvents);
@@ -76,6 +81,12 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             messages.forEach((elem) -> slackService.postMessage(elem.component1(), elem.component2()));
         }
         logger.info("<! method sendWeeklyReminders in class {}", WeeklyReminderServiceImpl.class.getSimpleName());
+    }
+
+    public List<Event> currentWeekEvents(List<Event> events, int currentWeekNumber) {
+        return events.stream()
+                .filter(event -> event.getDate().get(WeekFields.ISO.weekOfYear()) == currentWeekNumber)
+                .collect(Collectors.toList());
     }
 
     public List<Event> correctEvents (List<Event> events, OffsetDateTime now) {
