@@ -43,14 +43,17 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 fullNameSlackIdsMap,
                 events);
 
-        final var date = events.get(0).getDate().plusHours(3);
-
+        val date = events.get(0).getDate().plusHours(3);
         val currentWeekNumber = date.get(WeekFields.ISO.weekOfYear());
+
+        val nextWeek = date.plusWeeks(1).get(WeekFields.ISO.weekOfYear());
+        System.out.println("currentWeekNumber " + currentWeekNumber + "   nextWeek " + nextWeek);
+
         val currentWeekEvents = currentWeekEvents(events, currentWeekNumber);
 
-        final var numberOfWeekAndYear = String.valueOf(currentWeekNumber) + String.valueOf(date.getYear());
-        final var currentWeek = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numberOfWeekAndYear, department);
-        final var employeeDayEvents = generateSchedule(currentWeekEvents);
+        val numberOfWeekAndYear = String.valueOf(currentWeekNumber) + String.valueOf(date.getYear());
+        val currentWeek = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numberOfWeekAndYear, department);
+        val employeeDayEvents = generateSchedule(currentWeekEvents);
 
         if (currentWeek.isEmpty()) {
             generateAndSendWeeklyMessage(employeeDayEvents, fullNameSlackIdsMap);
@@ -90,7 +93,6 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
     }
 
     public List<Event> correctEvents (List<Event> events, OffsetDateTime now) {
-
        return events.stream()
                .filter(event -> event.getDate().isAfter(now))
                .collect(Collectors.toList());
@@ -185,7 +187,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 WeeklyReminderServiceImpl.class.getSimpleName(),
                 events);
 
-        final var employeeDayEvents = new HashMap<String, Map<DayOfWeek, List<Event>>>();
+        val employeeDayEvents = new HashMap<String, Map<DayOfWeek, List<Event>>>();
 
         events.forEach((event) -> event.getRecipients().forEach((recipient) -> {
 
@@ -193,7 +195,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                     employeeDayEvents.put(recipient, new HashMap<>());
                 }
 
-                final var dayOfWeek = event.getDate().plusHours(3).getDayOfWeek();
+            val dayOfWeek = event.getDate().plusHours(3).getDayOfWeek();
 
                 if (!employeeDayEvents.get(recipient).containsKey(dayOfWeek)) {
                     employeeDayEvents.get(recipient).put(dayOfWeek, new ArrayList<>());
@@ -215,20 +217,20 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
         for(Map.Entry<String, Map<DayOfWeek, List<Event>>> item: employeeDayEvents.entrySet()) {
 
-            final var fullName = item.getKey();
-            final var name = fullName.split(" ");
+            val fullName = item.getKey();
+            val name = fullName.split(" ");
             MessageBuilder messageBuilder = new MessageBuilder().greetings(name[0]).nextLine().weeklyEvents().nextLine();
 
-            final var treeMap = new TreeMap<>(item.getValue());
+            val treeMap = new TreeMap<>(item.getValue());
 
             for (Map.Entry<DayOfWeek, List<Event>> data: treeMap.entrySet()) {
-                final var dataKey= data.getKey();
-                final var ii = data.getValue().stream().map(iter -> iter.getDate().plusHours(3).format(DateTimeFormatter.ofPattern("dd.MM.yy"))).distinct().collect(Collectors.toList());
+                val dataKey= data.getKey();
+                val ii = data.getValue().stream().map(iter -> iter.getDate().plusHours(3).format(DateTimeFormatter.ofPattern("dd.MM.yy"))).distinct().collect(Collectors.toList());
 
                 messageBuilder.addDayOfWeek(dataKey, ii.iterator().next()).nextLine();
 
                 data.getValue().forEach(dates -> {
-                    final var time = dates.getDate().plusHours(3).format(dateTimeFormatter);
+                    val time = dates.getDate().plusHours(3).format(dateTimeFormatter);
 
                     if (dates.getTrainee().equals(fullName)) {
                         messageBuilder.passWeeklyEvent(dates.getEventType(), dates.getInterviewer(), time).nextLine();
@@ -285,13 +287,13 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         logger.info("-> method generateMessageForEmployee in class {}",
                 WeeklyReminderServiceImpl.class.getSimpleName());
 
-        final var entrySet = new TreeMap<>(item.getValue()).entrySet();
+        val entrySet = new TreeMap<>(item.getValue()).entrySet();
 
         var isDiffTypeSet = false;
 
         for (Map.Entry<DayOfWeek,  List<List<Event>>> data : entrySet) {
-            final var dataKey = data.getKey();
-            final var ii = data.getValue().get(index).stream().map(iter -> iter.getDate().plusHours(3).format(DateTimeFormatter.ofPattern("dd.MM.yy"))).distinct().collect(Collectors.toList());
+            val dataKey = data.getKey();
+            val ii = data.getValue().get(index).stream().map(iter -> iter.getDate().plusHours(3).format(DateTimeFormatter.ofPattern("dd.MM.yy"))).distinct().collect(Collectors.toList());
 
             if (ii.isEmpty()) {
                 continue;
@@ -326,7 +328,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 fullName,
                 messageBuilder);
 
-        final var time = dates.getDate().plusHours(3).format(dateTimeFormatter);
+        val time = dates.getDate().plusHours(3).format(dateTimeFormatter);
 
         if (dates.getTrainee().equals(fullName)) {
             messageBuilder.passWeeklyEvent(dates.getEventType(), dates.getInterviewer(), time).nextLine();
