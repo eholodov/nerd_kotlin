@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
+import javax.servlet.http.HttpServletRequest
 
 
 @Service
@@ -23,7 +24,8 @@ class AcademySchedulerServiceImpl(
     val academyReminderRepository: AcademyReminderRepository,
     val mongoTemplate: MongoTemplate,
     val slackServiceImpl: SlackServiceImpl,
-    val env: Environment
+    val env: Environment,
+    val httpServletRequest: HttpServletRequest
 ) {
     @Volatile var departmentScheduler = mutableMapOf<String, MutableList<AcademyReminderTask>>()
     private val lock = ReentrantLock()
@@ -31,7 +33,8 @@ class AcademySchedulerServiceImpl(
 
     fun schedule(reminders: List<AcademyReminderDocument>, department: String) {
 
-        logger.info("-> method schedule in class {}, \n reminders {}, \n department", this.javaClass.simpleName, reminders, department)
+        logger.info("-> method schedule with header {} \n reminders {}, \n department",
+            httpServletRequest.getHeader("requestId"), reminders, department)
 
         try {
             lock.lock()
@@ -58,13 +61,14 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
-        logger.info("<! method schedule in class {}", this.javaClass.simpleName)
+        logger.info("<! method schedule in class")
     }
 
 
     fun cancelScheduledTasksByDepartment(department: String) {
 
-        logger.info("-> method cancelScheduledTasksByDepartment in class {} \n department {}", this.javaClass.simpleName, department)
+        logger.info("-> method cancelScheduledTasksByDepartment with header {} \n department {}",
+            httpServletRequest.getHeader("requestId"), department)
 
         try {
             val scheduledTasks = departmentScheduler[department]
@@ -78,12 +82,12 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
-        logger.info("<! method cancelScheduledTasksByDepartment in class {}", this.javaClass.simpleName)
+        logger.info("<! method cancelScheduledTasksByDepartment")
     }
 
     fun refreshAllReminders() {
 
-        logger.info("-> method refreshAllReminders in class {}", this.javaClass.simpleName)
+        logger.info("-> method refreshAllReminders with header {}", httpServletRequest.getHeader("requestId"))
 
         try {
             lock.lock()
@@ -95,25 +99,25 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
-        logger.info("<! method refreshAllReminders in class {}", this.javaClass.simpleName)
+        logger.info("<! method refreshAllReminders")
     }
 
     fun startCrons(department: String) {
 
-        logger.info("-> method startCrons in class {} \n department {}", this.javaClass.simpleName, department)
+        logger.info("-> method startCrons with header {} \n department {}", httpServletRequest.getHeader("requestId"), department)
 
         val academyReminderDocuments = academyReminderRepository.findAllByIsSentAndDepartmentAndDateToSendGreaterThan(false, department, Instant.now())
 
         this.schedule(academyReminderDocuments, department)
 
-        logger.info("<! method startCrons in class {}", this.javaClass.simpleName)
+        logger.info("<! method startCrons")
     }
 
     @Profile("prod")
     @EventListener(classes =  [ContextRefreshedEvent::class] )
     fun handleTasksFromDb() {
 
-        logger.info("-> method handleTasksFromDb in class {}", this.javaClass.simpleName)
+        logger.info("-> method handleTasksFromDb with header {}", httpServletRequest.getHeader("requestId"))
 
         if (env.activeProfiles.contains("dev")) {
             return
@@ -127,12 +131,12 @@ class AcademySchedulerServiceImpl(
 
         data.forEach { startCrons(it) }
 
-        logger.info("<! method handleTasksFromDb in class {}", this.javaClass.simpleName)
+        logger.info("<! method handleTasksFromDb")
     }
 
     fun getActiveReminders(): MutableMap<String, List<Instant>> {
 
-        logger.info("-> method getActiveReminders in class {}", this.javaClass.simpleName)
+        logger.info("-> method getActiveReminders with header {} <!", httpServletRequest.getHeader("requestId"))
 
         return departmentScheduler.toList().fold(mutableMapOf()) {acc, item ->
 

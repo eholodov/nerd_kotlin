@@ -20,10 +20,12 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
 import javax.annotation.PostConstruct
+import javax.servlet.http.HttpServletRequest
 
 @Service
 class SlackServiceImpl(val mongoTemplate: MongoTemplate,
-                       val membersRepository: MembersRepository)
+                       val membersRepository: MembersRepository,
+                       val httpServletRequest: HttpServletRequest)
     : SlackService {
 
     private var logger = LoggerFactory.getLogger(this.javaClass);
@@ -70,7 +72,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
 
     fun getUsersFromSlackV2() {
 
-        logger.info("-> method getUsersFromSlackV2 in class {}", this.javaClass.simpleName)
+        logger.info("-> method getUsersFromSlackV2 with header {}", httpServletRequest.getHeader("requestId"))
 
         val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
         throw CustomException(PERSON_NOT_FOUND)
@@ -99,7 +101,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
 
     fun getSlackIds(data: List<Event>): MutableMap<String, String> {
 
-        logger.info("-> method getSlackIds in class {}, \n data {}", this.javaClass.simpleName, data)
+        logger.info("-> method getSlackIds with header {}, \n data {}", httpServletRequest.getHeader("requestId"), this.javaClass.simpleName, data)
 
         val recipients = data.fold(mutableSetOf<String>()) { acc, item ->
 
@@ -125,7 +127,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
             }
         }
 
-        logger.info("<! method getSlackIds in class {}", this.javaClass.simpleName)
+        logger.info("<! method getSlackIds")
 
         return slackIdsFullName.fold(mutableMapOf()) { acc, item ->
 
