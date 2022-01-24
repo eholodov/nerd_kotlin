@@ -7,6 +7,7 @@ import com.dunice.nerd_kotlin.common.db.WeeklySentDocument;
 import com.dunice.nerd_kotlin.common.db.WeeklyIsSendRepository;
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl;
 import kotlin.Pair;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
     private final SlackServiceImpl slackService;
@@ -30,18 +32,6 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
     private final String className = this.getClass().getSimpleName();
-
-    @Autowired
-    public WeeklyReminderServiceImpl(SlackServiceImpl slackService,
-                                     WeeklyIsSendRepository weeklyIsSendRepository,
-                                     Logger simpleLog
-    ) {
-        this.slackService = slackService;
-        this.weeklyIsSendRepository = weeklyIsSendRepository;
-        this.simpleLog = simpleLog;
-    }
-
-
 
     public void sendWeeklyReminders(List<Event> events, String department, Map<String, String> fullNameSlackIdsMap) {
 
