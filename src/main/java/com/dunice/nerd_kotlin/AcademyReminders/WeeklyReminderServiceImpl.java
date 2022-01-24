@@ -26,21 +26,18 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
     private final SlackServiceImpl slackService;
     private final WeeklyIsSendRepository weeklyIsSendRepository;
-    private final HttpServletRequest httpServletRequest;
     private final Logger simpleLog;
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-    private final org.slf4j.Logger logger = LoggerFactory.getLogger(WeeklyReminderServiceImpl.class.getName());
+    private final String className = this.getClass().getSimpleName();
 
     @Autowired
     public WeeklyReminderServiceImpl(SlackServiceImpl slackService,
                                      WeeklyIsSendRepository weeklyIsSendRepository,
-                                     HttpServletRequest httpServletRequest,
                                      Logger simpleLog
     ) {
         this.slackService = slackService;
         this.weeklyIsSendRepository = weeklyIsSendRepository;
-        this.httpServletRequest = httpServletRequest;
         this.simpleLog = simpleLog;
     }
 
@@ -48,13 +45,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
     public void sendWeeklyReminders(List<Event> events, String department, Map<String, String> fullNameSlackIdsMap) {
 
-        simpleLog.logStart("-> method sendWeeklyReminders with header {} in class {} \n with data {} ", this.getClass().getSimpleName(), department, fullNameSlackIdsMap, events);
-
-//        logger.info("-> method sendWeeklyReminders with header {} \n department {}, \n fullNameSlackIdsMap {}, \n events {}",
-//                httpServletRequest.getHeader("requestId"),
-//                department,
-//                fullNameSlackIdsMap,
-//                events);
+        simpleLog.logStart("-> method sendWeeklyReminders with header {} in class {} \n with data {} ", className, department, fullNameSlackIdsMap, events);
 
         final var date = events.get(0).getDate().plusHours(3);
 
@@ -87,8 +78,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             val messages = generateDiffMessages(mergedEventsSchedule, fullNameSlackIdsMap);
 
-            simpleLog.logFun("-> fun generateDiffMessages with header {} in class {} \n with data {}", this.getClass().getSimpleName(), messages);
-//            logger.info("message {}", messages);
+            simpleLog.logFun("-> fun generateDiffMessages with header {} in class {} \n with data {}", className, messages);
 
             val currenWeekData = currentWeek.get();
             currenWeekData.setEvents(newCorrectedEvents);
@@ -96,7 +86,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             messages.forEach((elem) -> slackService.postMessage(elem.component1(), elem.component2()));
         }
-        simpleLog.logFinish("<! method sendWeeklyReminders with header {} in class {}", this.getClass().getSimpleName());
+        simpleLog.logFinish("<! method sendWeeklyReminders with header {} in class {}", className);
     }
 
     public List<Event> currentWeekEvents(List<Event> events, int currentWeekNumber) {
@@ -106,7 +96,6 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
     }
 
     public List<Event> correctEvents (List<Event> events, OffsetDateTime now) {
-
        return events.stream()
                .filter(event -> event.getDate().isAfter(now))
                .collect(Collectors.toList());
@@ -117,11 +106,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             Map<String, Map<DayOfWeek, List<Event>>> addedEventsSchedule
     ) {
 
-        simpleLog.logStart("-> method mergeRemovedAddedEvents with header {} in class {} \n with data {} ", this.getClass().getSimpleName(), removedEventsSchedule, addedEventsSchedule);
-//        logger.info("-> method mergeRemovedAddedEvents with header {} \n removedEventsSchedule {}, \n addedEventsSchedule {}",
-//                httpServletRequest.getHeader("requestId"),
-//                removedEventsSchedule,
-//                addedEventsSchedule);
+        simpleLog.logStart("-> method mergeRemovedAddedEvents with header {} in class {} \n with data {} ", className, removedEventsSchedule, addedEventsSchedule);
 
         val mergedEventsSchedule = new HashMap<String, Map<DayOfWeek, List<List<Event>>>>();
 
@@ -131,8 +116,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         for(Map.Entry<String, Map<DayOfWeek, List<Event>>> addedItem: addedEventsSchedule.entrySet()) {
             addUserEvents(mergedEventsSchedule, addedItem, 1);
         }
-        simpleLog.logFinish("<! method mergeRemovedAddedEvents with header {} in class {}", this.getClass().getSimpleName());
-//        logger.info("<! method mergeRemovedAddedEvents");
+        simpleLog.logFinish("<! method mergeRemovedAddedEvents with header {} in class {}", className);
         return mergedEventsSchedule;
     }
 
@@ -141,12 +125,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             Map.Entry<String, Map<DayOfWeek, List<Event>>> removedItem,
             int index) {
 
-        simpleLog.logStart("-> method addUserEvents with header {} in class {} \n with data {} ", this.getClass().getSimpleName(), index, mergedEventsSchedule, removedItem);
-//        logger.info("-> method addUserEvents with header {} \n mergedEventsSchedule {}, \n removedItem {}, \n index {}",
-//                httpServletRequest.getHeader("requestId"),
-//                mergedEventsSchedule,
-//                removedItem,
-//                index);
+        simpleLog.logStart("-> method addUserEvents with header {} in class {} \n with data {} ", className, index, mergedEventsSchedule, removedItem);
 
         val key = removedItem.getKey();
         val value = removedItem.getValue();
@@ -168,17 +147,12 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
            mergedEventsSchedule.get(key).get(nestedKey).get(index).addAll(nestedValue);
         }
-        simpleLog.logFinish("<! method addUserEvents with header {} in class {}", this.getClass().getSimpleName());
-//        logger.info("<! method addUserEvents");
+        simpleLog.logFinish("<! method addUserEvents with header {} in class {}", className);
     }
 
     private Pair<List<Event>, List<Event>> generateDiffs(List<Event> newEvents, List<Event> oldEvents) {
 
-        simpleLog.logStart("-> method generateDiffs with header {} in class {} \n with data {} ", this.getClass().getSimpleName(), newEvents, oldEvents);
-//        logger.info("-> method generateDiffs with header {} \n newEvents {}, \n oldEvents {}",
-//                httpServletRequest.getHeader("requestId"),
-//                newEvents,
-//                oldEvents);
+        simpleLog.logStart("-> method generateDiffs with header {} in class {} \n with data {} ", className, newEvents, oldEvents);
 
         if (newEvents.equals(oldEvents)) return null;
 
@@ -195,18 +169,14 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         val removedEvents = List.copyOf(oldEventsHash);
         val addedEvents = List.copyOf(newEventsHash);
 
-        simpleLog.logFinish("<! method generateDiffs with header {} in class {}", this.getClass().getSimpleName());
-//        logger.info("<! method generateDiffs in class");
+        simpleLog.logFinish("<! method generateDiffs with header {} in class {}", className);
         return new Pair<>(removedEvents, addedEvents);
     }
 
     @Override
     public Map<String, Map<DayOfWeek, List<Event>>> generateSchedule(List<Event> events) {
 
-        simpleLog.logStart("-> method generateSchedule with header {} in class {} \n with data {}", this.getClass().getSimpleName(), events);
-//        logger.info("-> method generateSchedule with header {} \n events {}",
-//                httpServletRequest.getHeader("requestId"),
-//                events);
+        simpleLog.logStart("-> method generateSchedule with header {} in class {} \n with data {}", className, events);
 
         final var employeeDayEvents = new HashMap<String, Map<DayOfWeek, List<Event>>>();
 
@@ -223,8 +193,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 }
                 employeeDayEvents.get(recipient).get(dayOfWeek).add(event);
             }));
-        simpleLog.logFinish("<! method generateSchedule with header {} in class {}", this.getClass().getSimpleName());
-//        logger.info("<! method generateSchedule");
+        simpleLog.logFinish("<! method generateSchedule with header {} in class {}", className);
         return employeeDayEvents;
     }
 
@@ -232,11 +201,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
     public void generateAndSendWeeklyMessage(Map<String, Map<DayOfWeek, List<Event>>> employeeDayEvents,
                                              Map<String, String> fullNameSlackIdsMap) {
 
-        simpleLog.logStart("-> method generateAndSendWeeklyMessage with header {} in class {} \n with data {} ", this.getClass().getSimpleName(), employeeDayEvents, fullNameSlackIdsMap);
-//        logger.info("-> method generateAndSendWeeklyMessage with header {} \n employeeDayEvents {}, \n fullNameSlackIdsMap {}",
-//                httpServletRequest.getHeader("requestId"),
-//                employeeDayEvents,
-//                fullNameSlackIdsMap);
+        simpleLog.logStart("-> method generateAndSendWeeklyMessage with header {} in class {} \n with data {} ", className, employeeDayEvents, fullNameSlackIdsMap);
 
         for(Map.Entry<String, Map<DayOfWeek, List<Event>>> item: employeeDayEvents.entrySet()) {
 
@@ -267,18 +232,13 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 slackService.postMessage(fullNameSlackIdsMap.get(fullName), messageBuilder.build());
         }
         simpleLog.logFinish("<! method generateAndSendWeeklyMessage with header {} in class {}", this.getClass().getSimpleName());
-//        logger.info("<! method generateAndSendWeeklyMessage");
     }
 
 
     private ArrayList<Pair<String, String>> generateDiffMessages(Map<String, Map<DayOfWeek, List<List<Event>>>> employeeDayEvents,
                                                                  Map<String, String> fullNameSlackIdsMap) {
 
-        simpleLog.logStart("-> method generateDiffMessages with header {} in class {} \n with data {}", this.getClass().getSimpleName(), employeeDayEvents, fullNameSlackIdsMap);
-//        logger.info("-> method generateDiffMessages with header {} \n employeeDayEvents {}, \n fullNameSlackIdsMap {}",
-//                httpServletRequest.getHeader("requestId"),
-//                employeeDayEvents,
-//                fullNameSlackIdsMap);
+        simpleLog.logStart("-> method generateDiffMessages with header {} in class {} \n with data {}", className, employeeDayEvents, fullNameSlackIdsMap);
 
         val messages = new ArrayList<Pair<String, String>>();
         for (Map.Entry<String, Map<DayOfWeek,  List<List<Event>>>> item : employeeDayEvents.entrySet()) {
@@ -298,8 +258,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             messages.add(new Pair<>(fullNameSlackIdsMap.get(fullName), messageBuilder.build()));
         }
-        simpleLog.logFinish("<! method generateDiffMessages with header {} in class {}", this.getClass().getSimpleName());
-//        logger.info("<! method generateDiffMessages");
+        simpleLog.logFinish("<! method generateDiffMessages with header {} in class {}", className);
         return messages;
     }
 
@@ -310,13 +269,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             int index
     ) {
 
-        simpleLog.logStart("-> method generateMessageForEmployee with header {} in class {} \n with data {}", this.getClass().getSimpleName(), index, fullName, item, messageBuilder);
-//        logger.info("-> method generateMessageForEmployee with header {} \n index {}, \n fullName {}, \n item {}, \n messageBuilder {}",
-//                httpServletRequest.getHeader("requestId"),
-//                index,
-//                fullName,
-//                item,
-//                messageBuilder);
+        simpleLog.logStart("-> method generateMessageForEmployee with header {} in class {} \n with data {}", className, index, fullName, item, messageBuilder);
 
         final var entrySet = new TreeMap<>(item.getValue()).entrySet();
 
@@ -348,18 +301,12 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             data.getValue().get(index).forEach(dates -> generateDayMessage(dates, fullName, messageBuilder));
         }
-        simpleLog.logFinish("<! method generateMessageForEmployee with header {} in class {}", this.getClass().getSimpleName());
-//        logger.info("<! method generateMessageForEmployee");
+        simpleLog.logFinish("<! method generateMessageForEmployee with header {} in class {}", className);
     }
 
     private void generateDayMessage(Event dates, String fullName, MessageBuilder messageBuilder) {
 
-        simpleLog.logStart("-> method generateDayMessage with header {} in class {} \n with data {}", this.getClass().getSimpleName(), fullName, dates, messageBuilder);
-//        logger.info("-> method generateDayMessage with header {} \n dates {}, \n fullName {}, \n messageBuilder {}",
-//                httpServletRequest.getHeader("requestId"),
-//                dates,
-//                fullName,
-//                messageBuilder);
+        simpleLog.logStart("-> method generateDayMessage with header {} in class {} \n with data {}", className, fullName, dates, messageBuilder);
 
         final var time = dates.getDate().plusHours(3).format(dateTimeFormatter);
 
@@ -370,8 +317,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         } else {
             messageBuilder.watchWeeklyEvent(dates.getEventType(), dates.getTrainee(), dates.getInterviewer(), time).nextLine();
         }
-        simpleLog.logFinish("<! method generateDayMessage with header {} in class {}", this.getClass().getSimpleName());
-//        logger.info("<! method generateDayMessage");
+        simpleLog.logFinish("<! method generateDayMessage with header {} in class {}", className);
     }
 }
 

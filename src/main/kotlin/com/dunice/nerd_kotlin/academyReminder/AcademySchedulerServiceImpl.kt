@@ -26,19 +26,11 @@ class AcademySchedulerServiceImpl(
     val mongoTemplate: MongoTemplate,
     val slackServiceImpl: SlackServiceImpl,
     val env: Environment,
-//    val simpleLogger: Logger
-//    val httpServletRequest: HttpServletRequest
 ) {
     @Volatile var departmentScheduler = mutableMapOf<String, MutableList<AcademyReminderTask>>()
     private val lock = ReentrantLock()
-//    private var logger = LoggerFactory.getLogger(this.javaClass);
 
     fun schedule(reminders: List<AcademyReminderDocument>, department: String) {
-
-//        simpleLogger.logStart("-> method schedule with header {} in class {} \n data {}",
-//            this.javaClass.simpleName, reminders, department)
-//        logger.info("-> method schedule with header {} \n reminders {}, \n department",
-//        httpServletRequest.getHeader("requestId"), reminders, department)
 
         try {
             lock.lock()
@@ -65,18 +57,10 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
-//        simpleLogger.logFinish("-> method schedule with header {} in class {}",
-//            this.javaClass.simpleName)
-//        logger.info("<! method schedule in class")
     }
 
 
     fun cancelScheduledTasksByDepartment(department: String) {
-
-//        simpleLogger.logStart("-> method cancelScheduledTasksByDepartment with header {} in class {} \n data {}",
-//            this.javaClass.simpleName, department)
-//        logger.info("-> method cancelScheduledTasksByDepartment with header {} \n department {}",
-//            httpServletRequest.getHeader("requestId"), department)
 
         try {
             val scheduledTasks = departmentScheduler[department]
@@ -90,16 +74,9 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
-//        simpleLogger.logFinish("-> method cancelScheduledTasksByDepartment with header {} in class {}",
-//            this.javaClass.simpleName)
-//        logger.info("<! method cancelScheduledTasksByDepartment")
     }
 
     fun refreshAllReminders() {
-
-//        simpleLogger.logFinish("-> method refreshAllReminders with header {} in class {}",
-//            this.javaClass.simpleName)
-//        logger.info("-> method refreshAllReminders with header {}", httpServletRequest.getHeader("requestId"))
 
         try {
             lock.lock()
@@ -111,33 +88,18 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
-//        simpleLogger.logFinish("-> method refreshAllReminders with header {} in class {}",
-//            this.javaClass.simpleName)
-//        logger.info("<! method refreshAllReminders")
     }
 
     fun startCrons(department: String) {
 
-//        simpleLogger.logStart("-> method startCrons with header {} in class {} \n data {}",
-//            this.javaClass.simpleName, department)
-//        logger.info("-> method startCrons with header {} \n department {}", httpServletRequest.getHeader("requestId"), department)
-
         val academyReminderDocuments = academyReminderRepository.findAllByIsSentAndDepartmentAndDateToSendGreaterThan(false, department, Instant.now())
 
         this.schedule(academyReminderDocuments, department)
-
-//        simpleLogger.logFinish("-> method startCrons with header {} in class {}",
-//            this.javaClass.simpleName)
-//        logger.info("<! method startCrons")
     }
 
     @Profile("prod")
     @EventListener(classes =  [ContextRefreshedEvent::class] )
     fun handleTasksFromDb() {
-
-//        simpleLogger.logFinish("-> method handleTasksFromDb with header {} in class {}",
-//            this.javaClass.simpleName)
-//        logger.info("-> method handleTasksFromDb with header {}", httpServletRequest.getHeader("requestId"))
 
         if (env.activeProfiles.contains("dev")) {
             return
@@ -150,16 +112,9 @@ class AcademySchedulerServiceImpl(
             String::class.java)
 
         data.forEach { startCrons(it) }
-
-//        simpleLogger.logFinish("-> method handleTasksFromDb with header {} in class {}",
-//            this.javaClass.simpleName)
     }
 
     fun getActiveReminders(): MutableMap<String, List<Instant>> {
-
-//        simpleLogger.logFinish("->!< method getActiveReminders with header {} in class {}",
-//            this.javaClass.simpleName)
-//        logger.info("-> method getActiveReminders with header {} <!", httpServletRequest.getHeader("requestId"))
 
         return departmentScheduler.toList().fold(mutableMapOf()) {acc, item ->
 

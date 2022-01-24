@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 public class Logger {
 
     private final HttpServletRequest httpServletRequest;
-
+    private final String header = "requestId";
     private final org.slf4j.Logger logger = LoggerFactory.getLogger(WeeklyReminderServiceImpl.class.getName());
 
     @Autowired
@@ -20,12 +20,12 @@ public class Logger {
     }
 
     public void logStart(String message, String className, Object... ss) {
-        logger.info(message, httpServletRequest.getHeader("requestId"), className, ss);
+        logger.info(message, httpServletRequest.getHeader(header), className, ss);
     }
     public void logFun(String message, String className, Object... ss) {
-        logger.info(message, httpServletRequest.getHeader("requestId"), className, ss);
+        logger.info(message, httpServletRequest.getHeader(header), className, ss);
     }
     public void logFinish(String message, String className) {
-        logger.info(message, httpServletRequest.getHeader("requestId"), className);
+        logger.info(message, httpServletRequest.getHeader(header), className);
     }
 }
