@@ -2,6 +2,7 @@ package com.dunice.nerd_kotlin.academyReminder
 
 import com.dunice.nerd_kotlin.AcademyReminders.WeeklyReminderService
 import com.dunice.nerd_kotlin.academyReminder.types.Event
+import com.dunice.nerd_kotlin.common.Logger
 import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.common.db.MembersRepository
@@ -20,15 +21,17 @@ class AcademyReminderService(
     private val academySchedulerServiceImpl: AcademySchedulerServiceImpl,
     private val slackServiceImpl: SlackServiceImpl,
     private val weeklyReminderService: WeeklyReminderService,
-    private val httpServletRequest: HttpServletRequest
+    private val simpleLogger: Logger
 ) {
 
-    private var logger = LoggerFactory.getLogger(this.javaClass);
+//    private var logger = LoggerFactory.getLogger(this.javaClass);
 
 
     fun addReminders(data: List<List<String>>, department: String) {
 
-        logger.info("-> method addReminders with header {} \n data {}", httpServletRequest.getHeader("requestId"), data)
+        simpleLogger.logStart("-> method addReminders with header {} in class{} \n data {}",
+            this.javaClass.simpleName, department, data)
+//        logger.info("-> method addReminders with header {} \n data {}", httpServletRequest.getHeader("requestId"), data)
 
         val events = data.fold(mutableListOf<Event>()) { acc, item ->
 
@@ -67,7 +70,7 @@ class AcademyReminderService(
 
         academySchedulerServiceImpl.schedule(reminders, department)
 
-        logger.info("<! method addReminders")
+//        logger.info("<! method addReminders")
     }
 // For testing
 //    @EventListener(classes = [ContextRefreshedEvent::class])
@@ -96,8 +99,10 @@ class AcademyReminderService(
         department: String,
         fullNameSlackIdsMap: MutableMap<String, String>, ): List<AcademyReminderDocument> {
 
-        logger.info("-> method generateAndSaveAcademyReminders with header {} \n events {}, \n department {}, \n fullNameSlackIdsMap {}",
-            httpServletRequest.getHeader("requestId"), events, department, fullNameSlackIdsMap)
+        simpleLogger.logStart("-> method generateAndSaveAcademyReminders with header {} in class {} \n data {}",
+            this.javaClass.simpleName,events, department, fullNameSlackIdsMap)
+//        logger.info("-> method generateAndSaveAcademyReminders with header {} \n events {}, \n department {}, \n fullNameSlackIdsMap {}",
+//            httpServletRequest.getHeader("requestId"), events, department, fullNameSlackIdsMap)
 
         val now = OffsetDateTime.now()
 
@@ -108,7 +113,8 @@ class AcademyReminderService(
 
         academyReminderRepository.saveAll(reminders)
 
-        logger.info("<! method generateAndSaveAcademyReminders")
+        simpleLogger.logFinish("<! method generateAndSaveAcademyReminders with header {} in class {}", this.javaClass.simpleName);
+//        logger.info("<! method generateAndSaveAcademyReminders")
         return reminders
 
     }
@@ -120,8 +126,10 @@ class AcademyReminderService(
         now: OffsetDateTime
     ): List<AcademyReminderDocument> {
 
-        logger.info("-> method generateReminders with header {} \n events {}, \n department {}, \n fullNameSlackIdsMap {}, \n now {} \n  <!",
-            httpServletRequest.getHeader("requestId"), events, department, fullNameSlackIdsMap, now)
+        simpleLogger.logStart("-> method generateReminders with header {} in class {} \n data {}",
+            this.javaClass.simpleName, events, department, fullNameSlackIdsMap, now)
+//        logger.info("-> method generateReminders with header {} \n events {}, \n department {}, \n fullNameSlackIdsMap {}, \n now {} \n  <!",
+//            httpServletRequest.getHeader("requestId"), events, department, fullNameSlackIdsMap, now)
 
         return events
             .filter { it.date > now && (it.date.hour != 21 || it.date.minute != 0)}
@@ -172,8 +180,10 @@ class AcademyReminderService(
         now: OffsetDateTime
     ): List<AcademyReminderDocument> {
 
-        logger.info("-> method generateDailyReminders with header {}, \n events {}, \n fullNameSlackIdsMap {}, \n department {}, \n now {} \n  <! ",
-            httpServletRequest.getHeader("requestId"), events, fullNameSlackIdsMap, department, now)
+        simpleLogger.logStart("->!< method generateDailyReminders with header {} in class {} \n data {}",
+            this.javaClass.simpleName, events, fullNameSlackIdsMap, department, now)
+//        logger.info("-> method generateDailyReminders with header {}, \n events {}, \n fullNameSlackIdsMap {}, \n department {}, \n now {} \n  <! ",
+//            httpServletRequest.getHeader("requestId"), events, fullNameSlackIdsMap, department, now)
 
         return events
             .fold(mutableMapOf<String, MutableMap<OffsetDateTime, MutableList<Event>>>()) {acc, event ->
@@ -252,7 +262,9 @@ class AcademyReminderService(
 
     private fun generateDateToSend(dateOfElem: OffsetDateTime): OffsetDateTime {
 
-        logger.info("-> generateDateToSend with header {} \n dateOfElem {} \n  <!", httpServletRequest.getHeader("requestId"), dateOfElem)
+//        simpleLogger.logStart("->!< method generateDateToSend with header {} in class {} \n data {}",
+//            this.javaClass.simpleName, dateOfElem)
+//        logger.info("-> generateDateToSend with header {} \n dateOfElem {} \n  <!", httpServletRequest.getHeader("requestId"), dateOfElem)
 
         // Added 3 hours for understanding is it must be sent in the next day
         val dateOfElemPlus3Hours = dateOfElem.plusHours(3)

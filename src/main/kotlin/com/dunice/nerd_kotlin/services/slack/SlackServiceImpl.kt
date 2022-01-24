@@ -1,6 +1,7 @@
 package com.dunice.nerd_kotlin.services.slack
 
 import com.dunice.nerd_kotlin.academyReminder.types.Event
+import com.dunice.nerd_kotlin.common.Logger
 import com.dunice.nerd_kotlin.common.db.MemberDocument
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.common.errors.CustomException
@@ -25,7 +26,8 @@ import javax.servlet.http.HttpServletRequest
 @Service
 class SlackServiceImpl(val mongoTemplate: MongoTemplate,
                        val membersRepository: MembersRepository,
-                       val httpServletRequest: HttpServletRequest)
+                       val httpServletRequest: HttpServletRequest,
+                       val simpleLogger: Logger)
     : SlackService {
 
     private var logger = LoggerFactory.getLogger(this.javaClass);
@@ -72,7 +74,8 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
 
     fun getUsersFromSlackV2() {
 
-        logger.info("-> method getUsersFromSlackV2 with header {}", httpServletRequest.getHeader("requestId"))
+//        logger.info("-> method getUsersFromSlackV2 with header {}", httpServletRequest.getHeader("requestId"))
+        simpleLogger.logFinish("-> method getUsersFromSlackV2 with header {} in class {}", this.javaClass.simpleName)
 
         val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
         throw CustomException(PERSON_NOT_FOUND)
@@ -82,7 +85,8 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
             mongoTemplate.upsert(Query().addCriteria(Criteria.where("email").`is`(member.email)),
                 Update().set("slackId", member.slackId).set("fullName", member.fullName), "slackIds")
         }
-        logger.info("<! method getUsersFromSlackV2 in class {}", this.javaClass.simpleName)
+        simpleLogger.logFinish("!< method getUsersFromSlackV2 with header {} in class {}", this.javaClass.simpleName)
+//        logger.info("<! method getUsersFromSlackV2 in class {}", this.javaClass.simpleName)
     }
 
     @Deprecated("use getUsersFromSlack v2")
@@ -101,7 +105,9 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
 
     fun getSlackIds(data: List<Event>): MutableMap<String, String> {
 
-        logger.info("-> method getSlackIds with header {}, \n data {}", httpServletRequest.getHeader("requestId"), this.javaClass.simpleName, data)
+        simpleLogger.logStart("-> method getSlackIds with header {} in class{} \n data {}",
+            this.javaClass.simpleName, data)
+//        logger.info("-> method getSlackIds with header {}, \n data {}", httpServletRequest.getHeader("requestId"), this.javaClass.simpleName, data)
 
         val recipients = data.fold(mutableSetOf<String>()) { acc, item ->
 
@@ -126,8 +132,8 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
                 throw RuntimeException("Не были найдены slack id для пользователе ${diff.joinToString(" ")}")
             }
         }
-
-        logger.info("<! method getSlackIds")
+        simpleLogger.logFinish("!< method getSlackIds with header {} in class {}", this.javaClass.simpleName)
+//        logger.info("<! method getSlackIds")
 
         return slackIdsFullName.fold(mutableMapOf()) { acc, item ->
 
