@@ -18,7 +18,6 @@ import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -86,7 +85,6 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         if (!fullNameSlackIdsMap.equals(fullNameSlackIdsMapFromDb)){
             fullNameSlackIdsMapFromDb.forEach(fullNameSlackIdsMap::putIfAbsent);
         }
-        System.out.println("💀💀");
         return fullNameSlackIdsMap;
     }
 
