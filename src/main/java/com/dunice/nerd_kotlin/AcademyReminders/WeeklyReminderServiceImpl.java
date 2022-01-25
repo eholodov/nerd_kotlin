@@ -9,11 +9,8 @@ import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl;
 import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.DayOfWeek;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +18,7 @@ import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -43,18 +41,21 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         val currentWeekEvents = currentWeekEvents(events, currentWeekNumber);
 
         final var numberOfWeekAndYear = String.valueOf(currentWeekNumber) + String.valueOf(date.getYear());
-        final var currentWeek = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numberOfWeekAndYear, department);
+        final var currentWeekEventsFromDB = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numberOfWeekAndYear, department);
         final var employeeDayEvents = generateSchedule(currentWeekEvents);
 
-        if (currentWeek.isEmpty()) {
+
+
+        if (currentWeekEventsFromDB.isEmpty()) {
             generateAndSendWeeklyMessage(employeeDayEvents, fullNameSlackIdsMap);
             WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(numberOfWeekAndYear, department, currentWeekEvents);
             weeklyIsSendRepository.save(weeklyIsSendDocument);
         } else {
 
-            val now = OffsetDateTime.now();
+            val existsFullNameSlackIdsMap = checkSlackIdsExists(fullNameSlackIdsMap, currentWeekEventsFromDB.get().getEvents());
+            val now = OffsetDateTime.now().minusWeeks(1);
             val newCorrectedEvents = correctEvents(currentWeekEvents, now);
-            val oldCorrectedEvents = correctEvents(Objects.requireNonNull(currentWeek.get().getEvents()), now);
+            val oldCorrectedEvents = correctEvents(Objects.requireNonNull(currentWeekEventsFromDB.get().getEvents()), now);
 
             val diffs = generateDiffs(newCorrectedEvents, oldCorrectedEvents);
 
@@ -66,17 +67,27 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             val mergedEventsSchedule = mergeRemovedAddedEvents(removedEventsSchedule, addedEventsSchedule);
 
-            val messages = generateDiffMessages(mergedEventsSchedule, fullNameSlackIdsMap);
+            val messages = generateDiffMessages(mergedEventsSchedule, existsFullNameSlackIdsMap);
 
             simpleLog.logFun("-> fun generateDiffMessages with header {} in class {} \n with data {}", className, messages);
 
-            val currenWeekData = currentWeek.get();
+            val currenWeekData = currentWeekEventsFromDB.get();
             currenWeekData.setEvents(newCorrectedEvents);
             weeklyIsSendRepository.save(currenWeekData);
 
             messages.forEach((elem) -> slackService.postMessage(elem.component1(), elem.component2()));
         }
         simpleLog.logFinish("<! method sendWeeklyReminders with header {} in class {}", className);
+    }
+
+    public Map<String, String> checkSlackIdsExists(Map<String, String> fullNameSlackIdsMap, List<Event> eventsFromDB) {
+        val fullNameSlackIdsMapFromDb = slackService.getSlackIds(eventsFromDB);
+
+        if (!fullNameSlackIdsMap.equals(fullNameSlackIdsMapFromDb)){
+            fullNameSlackIdsMapFromDb.forEach(fullNameSlackIdsMap::putIfAbsent);
+        }
+        System.out.println("💀💀");
+        return fullNameSlackIdsMap;
     }
 
     public List<Event> currentWeekEvents(List<Event> events, int currentWeekNumber) {
@@ -247,6 +258,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             generateMessageForEmployee(item, messageBuilder, fullName, 1);
 
             messages.add(new Pair<>(fullNameSlackIdsMap.get(fullName), messageBuilder.build()));
+            System.out.println("💀💀");
         }
         simpleLog.logFinish("<! method generateDiffMessages with header {} in class {}", className);
         return messages;
