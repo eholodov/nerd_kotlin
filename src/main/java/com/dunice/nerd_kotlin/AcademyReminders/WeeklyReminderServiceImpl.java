@@ -58,6 +58,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             weeklyIsSendRepository.save(weeklyIsSendDocument);
         } else {
 
+            addSlackIdsForCurrentWeekUsers(fullNameSlackIdsMap, currentWeek.get());
             val now = OffsetDateTime.now();
             val newCorrectedEvents = correctEvents(currentWeekEvents, now);
             val oldCorrectedEvents = correctEvents(Objects.requireNonNull(currentWeek.get().getEvents()), now);
@@ -81,6 +82,25 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             messages.forEach((elem) -> slackService.postMessage(elem.component1(), elem.component2()));
         }
         logger.info("<! method sendWeeklyReminders in class {}", WeeklyReminderServiceImpl.class.getSimpleName());
+    }
+
+    public void addSlackIdsForCurrentWeekUsers(Map<String, String> fullNameSlackIdsMap, WeeklySentDocument currentWeek) {
+        logger.info("<! method addSlackIdsForCurrentWeekUsers in class {}", WeeklyReminderServiceImpl.class.getSimpleName());
+        val notFoundedRecipientsEvents = new ArrayList<Event>();
+
+        currentWeek.getEvents().forEach((event) -> event.getRecipients().forEach((recipient) -> {
+            if (fullNameSlackIdsMap.get(recipient) == null) {
+                notFoundedRecipientsEvents.add(event);
+            }
+        }));
+
+        logger.info("<! method addSlackIdsForCurrentWeekUsers notFoundedRecipientsEvents {} ", notFoundedRecipientsEvents);
+        val newFullNameSlackIdsMap = slackService.getSlackIds(notFoundedRecipientsEvents);
+
+        fullNameSlackIdsMap.putAll(newFullNameSlackIdsMap);
+
+        logger.info("<! method addSlackIdsForCurrentWeekUsers new fullNameSlackIdsMap {} ", fullNameSlackIdsMap);
+
     }
 
     public List<Event> currentWeekEvents(List<Event> events, int currentWeekNumber) {

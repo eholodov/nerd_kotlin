@@ -102,7 +102,6 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
         logger.info("-> method getSlackIds in class {}, \n data {}", this.javaClass.simpleName, data)
 
         val recipients = data.fold(mutableSetOf<String>()) { acc, item ->
-
             item.recipients.forEach {
                 acc.add(it)
             }
