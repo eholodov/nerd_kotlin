@@ -100,7 +100,6 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
         log.info("-> \n data {}", data)
 
         val recipients = data.fold(mutableSetOf<String>()) { acc, item ->
-
             item.recipients.forEach {
                 acc.add(it)
             }

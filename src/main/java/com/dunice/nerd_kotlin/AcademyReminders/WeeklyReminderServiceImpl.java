@@ -9,6 +9,9 @@ import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -45,16 +48,14 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         final var currentWeekEventsFromDB = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numberOfWeekAndYear, department);
         final var employeeDayEvents = generateSchedule(currentWeekEvents);
 
-
-
         if (currentWeekEventsFromDB.isEmpty()) {
             generateAndSendWeeklyMessage(employeeDayEvents, fullNameSlackIdsMap);
             WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(numberOfWeekAndYear, department, currentWeekEvents);
             weeklyIsSendRepository.save(weeklyIsSendDocument);
         } else {
 
-            val existsFullNameSlackIdsMap = checkSlackIdsExists(fullNameSlackIdsMap, currentWeekEventsFromDB.get().getEvents());
-            val now = OffsetDateTime.now().minusWeeks(1);
+            addSlackIdsForCurrentWeekUsers(fullNameSlackIdsMap, currentWeekEventsFromDB.get());
+            val now = OffsetDateTime.now();
             val newCorrectedEvents = correctEvents(currentWeekEvents, now);
             val oldCorrectedEvents = correctEvents(Objects.requireNonNull(currentWeekEventsFromDB.get().getEvents()), now);
 
@@ -68,7 +69,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             val mergedEventsSchedule = mergeRemovedAddedEvents(removedEventsSchedule, addedEventsSchedule);
 
-            val messages = generateDiffMessages(mergedEventsSchedule, existsFullNameSlackIdsMap);
+            val messages = generateDiffMessages(mergedEventsSchedule, fullNameSlackIdsMap);
 
             log.info("generateDiffMessages {}", messages);
 
@@ -81,16 +82,23 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         log.info("<!");
     }
 
-    public Map<String, String> checkSlackIdsExists(Map<String, String> fullNameSlackIdsMap, List<Event> eventsFromDB) {
+    public void addSlackIdsForCurrentWeekUsers(Map<String, String> fullNameSlackIdsMap, WeeklySentDocument currentWeek) {
+        logger.info("<! method addSlackIdsForCurrentWeekUsers in class {}", WeeklyReminderServiceImpl.class.getSimpleName());
+        val notFoundedRecipientsEvents = new ArrayList<Event>();
 
-        log.info("-> \n fullNameSlackIdsMap {}, \n eventsFrom {}", fullNameSlackIdsMap, eventsFromDB);
-        val fullNameSlackIdsMapFromDb = slackService.getSlackIds(eventsFromDB);
+        currentWeek.getEvents().forEach((event) -> event.getRecipients().forEach((recipient) -> {
+            if (fullNameSlackIdsMap.get(recipient) == null) {
+                notFoundedRecipientsEvents.add(event);
+            }
+        }));
 
-        if (!fullNameSlackIdsMap.equals(fullNameSlackIdsMapFromDb)){
-            fullNameSlackIdsMapFromDb.forEach(fullNameSlackIdsMap::putIfAbsent);
-        }
-        log.info("<!");
-        return fullNameSlackIdsMap;
+        logger.info("<! method addSlackIdsForCurrentWeekUsers notFoundedRecipientsEvents {} ", notFoundedRecipientsEvents);
+        val newFullNameSlackIdsMap = slackService.getSlackIds(notFoundedRecipientsEvents);
+
+        fullNameSlackIdsMap.putAll(newFullNameSlackIdsMap);
+
+        logger.info("<! method addSlackIdsForCurrentWeekUsers new fullNameSlackIdsMap {} ", fullNameSlackIdsMap);
+
     }
 
     public List<Event> currentWeekEvents(List<Event> events, int currentWeekNumber) {
