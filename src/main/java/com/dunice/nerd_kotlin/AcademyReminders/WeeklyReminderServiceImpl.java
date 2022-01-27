@@ -2,12 +2,12 @@ package com.dunice.nerd_kotlin.AcademyReminders;
 
 import com.dunice.nerd_kotlin.academyReminder.MessageBuilder;
 import com.dunice.nerd_kotlin.academyReminder.types.Event;
-import com.dunice.nerd_kotlin.common.Logger;
 import com.dunice.nerd_kotlin.common.db.WeeklySentDocument;
 import com.dunice.nerd_kotlin.common.db.WeeklyIsSendRepository;
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl;
 import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.stereotype.Service;
 
@@ -20,19 +20,21 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
     private final SlackServiceImpl slackService;
     private final WeeklyIsSendRepository weeklyIsSendRepository;
-    private final Logger simpleLog;
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-    private final String className = this.getClass().getSimpleName();
 
     public void sendWeeklyReminders(List<Event> events, String department, Map<String, String> fullNameSlackIdsMap) {
 
-        simpleLog.logStart("-> method sendWeeklyReminders with header {} in class {} \n with data {} ", className, department, fullNameSlackIdsMap, events);
+        log.info("-> \n department {}, \n fullNameSlackIdsMap {}, \n events {}",
+                department,
+                fullNameSlackIdsMap,
+                events);
 
         final var date = events.get(0).getDate().plusHours(3);
 
@@ -68,7 +70,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             val messages = generateDiffMessages(mergedEventsSchedule, existsFullNameSlackIdsMap);
 
-            simpleLog.logFun("-> fun generateDiffMessages with header {} in class {} \n with data {}", className, messages);
+            log.info("generateDiffMessages {}", messages);
 
             val currenWeekData = currentWeekEventsFromDB.get();
             currenWeekData.setEvents(newCorrectedEvents);
@@ -76,26 +78,31 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             messages.forEach((elem) -> slackService.postMessage(elem.component1(), elem.component2()));
         }
-        simpleLog.logFinish("<! method sendWeeklyReminders with header {} in class {}", className);
+        log.info("<!");
     }
 
     public Map<String, String> checkSlackIdsExists(Map<String, String> fullNameSlackIdsMap, List<Event> eventsFromDB) {
+
+        log.info("-> \n fullNameSlackIdsMap {}, \n eventsFrom {}", fullNameSlackIdsMap, eventsFromDB);
         val fullNameSlackIdsMapFromDb = slackService.getSlackIds(eventsFromDB);
 
         if (!fullNameSlackIdsMap.equals(fullNameSlackIdsMapFromDb)){
             fullNameSlackIdsMapFromDb.forEach(fullNameSlackIdsMap::putIfAbsent);
         }
+        log.info("<!");
         return fullNameSlackIdsMap;
     }
 
     public List<Event> currentWeekEvents(List<Event> events, int currentWeekNumber) {
+        log.info("-><! \n events {}, \n currentWeekNumber {}", events, currentWeekNumber);
         return events.stream()
                 .filter(event -> event.getDate().get(WeekFields.ISO.weekOfYear()) == currentWeekNumber)
                 .collect(Collectors.toList());
     }
 
     public List<Event> correctEvents (List<Event> events, OffsetDateTime now) {
-       return events.stream()
+        log.info("-><! \n events {}, \n now {}", events, now);
+        return events.stream()
                .filter(event -> event.getDate().isAfter(now))
                .collect(Collectors.toList());
     }
@@ -104,8 +111,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             Map<String, Map<DayOfWeek, List<Event>>> removedEventsSchedule,
             Map<String, Map<DayOfWeek, List<Event>>> addedEventsSchedule
     ) {
-
-        simpleLog.logStart("-> method mergeRemovedAddedEvents with header {} in class {} \n with data {} ", className, removedEventsSchedule, addedEventsSchedule);
+        log.info("-> \n removedEventsSchedule {} \n addedEventsSchedule {}", removedEventsSchedule, addedEventsSchedule);
 
         val mergedEventsSchedule = new HashMap<String, Map<DayOfWeek, List<List<Event>>>>();
 
@@ -115,7 +121,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         for(Map.Entry<String, Map<DayOfWeek, List<Event>>> addedItem: addedEventsSchedule.entrySet()) {
             addUserEvents(mergedEventsSchedule, addedItem, 1);
         }
-        simpleLog.logFinish("<! method mergeRemovedAddedEvents with header {} in class {}", className);
+        log.info("<!");
         return mergedEventsSchedule;
     }
 
@@ -124,7 +130,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             Map.Entry<String, Map<DayOfWeek, List<Event>>> removedItem,
             int index) {
 
-        simpleLog.logStart("-> method addUserEvents with header {} in class {} \n with data {} ", className, index, mergedEventsSchedule, removedItem);
+        log.info("-> \n mergedEventsSchedule {} \n removedItem {} \n index {}", mergedEventsSchedule, removedItem, index);
 
         val key = removedItem.getKey();
         val value = removedItem.getValue();
@@ -146,12 +152,12 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
            mergedEventsSchedule.get(key).get(nestedKey).get(index).addAll(nestedValue);
         }
-        simpleLog.logFinish("<! method addUserEvents with header {} in class {}", className);
+        log.info("<!");
     }
 
     private Pair<List<Event>, List<Event>> generateDiffs(List<Event> newEvents, List<Event> oldEvents) {
 
-        simpleLog.logStart("-> method generateDiffs with header {} in class {} \n with data {} ", className, newEvents, oldEvents);
+        log.info("-> \n newEvents {} \n oldEvents {}", newEvents, oldEvents);
 
         if (newEvents.equals(oldEvents)) return null;
 
@@ -168,14 +174,14 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         val removedEvents = List.copyOf(oldEventsHash);
         val addedEvents = List.copyOf(newEventsHash);
 
-        simpleLog.logFinish("<! method generateDiffs with header {} in class {}", className);
+        log.info("<!");
         return new Pair<>(removedEvents, addedEvents);
     }
 
     @Override
     public Map<String, Map<DayOfWeek, List<Event>>> generateSchedule(List<Event> events) {
 
-        simpleLog.logStart("-> method generateSchedule with header {} in class {} \n with data {}", className, events);
+        log.info("-> \n events {}", events);
 
         final var employeeDayEvents = new HashMap<String, Map<DayOfWeek, List<Event>>>();
 
@@ -192,7 +198,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 }
                 employeeDayEvents.get(recipient).get(dayOfWeek).add(event);
             }));
-        simpleLog.logFinish("<! method generateSchedule with header {} in class {}", className);
+        log.info("<!");
         return employeeDayEvents;
     }
 
@@ -200,7 +206,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
     public void generateAndSendWeeklyMessage(Map<String, Map<DayOfWeek, List<Event>>> employeeDayEvents,
                                              Map<String, String> fullNameSlackIdsMap) {
 
-        simpleLog.logStart("-> method generateAndSendWeeklyMessage with header {} in class {} \n with data {} ", className, employeeDayEvents, fullNameSlackIdsMap);
+        log.info("-> \n employeeDayEvents {} \n fullNameSlackIdsMap {}", employeeDayEvents, fullNameSlackIdsMap);
 
         for(Map.Entry<String, Map<DayOfWeek, List<Event>>> item: employeeDayEvents.entrySet()) {
 
@@ -230,14 +236,14 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             }
                 slackService.postMessage(fullNameSlackIdsMap.get(fullName), messageBuilder.build());
         }
-        simpleLog.logFinish("<! method generateAndSendWeeklyMessage with header {} in class {}", this.getClass().getSimpleName());
+        log.info("<!");
     }
 
 
     private ArrayList<Pair<String, String>> generateDiffMessages(Map<String, Map<DayOfWeek, List<List<Event>>>> employeeDayEvents,
                                                                  Map<String, String> fullNameSlackIdsMap) {
 
-        simpleLog.logStart("-> method generateDiffMessages with header {} in class {} \n with data {}", className, employeeDayEvents, fullNameSlackIdsMap);
+        log.info("-> \n employeeDayEvents {} \n fullNameSlackIdsMap {}", employeeDayEvents, fullNameSlackIdsMap);
 
         val messages = new ArrayList<Pair<String, String>>();
         for (Map.Entry<String, Map<DayOfWeek,  List<List<Event>>>> item : employeeDayEvents.entrySet()) {
@@ -256,9 +262,8 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             generateMessageForEmployee(item, messageBuilder, fullName, 1);
 
             messages.add(new Pair<>(fullNameSlackIdsMap.get(fullName), messageBuilder.build()));
-            System.out.println("💀💀");
         }
-        simpleLog.logFinish("<! method generateDiffMessages with header {} in class {}", className);
+        log.info("<!");
         return messages;
     }
 
@@ -269,7 +274,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             int index
     ) {
 
-        simpleLog.logStart("-> method generateMessageForEmployee with header {} in class {} \n with data {}", className, index, fullName, item, messageBuilder);
+        log.info("-> \n index {} \n fullName {} \n item {} \n messageBuilder {}", index, fullName, index, messageBuilder);
 
         final var entrySet = new TreeMap<>(item.getValue()).entrySet();
 
@@ -301,12 +306,12 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
             data.getValue().get(index).forEach(dates -> generateDayMessage(dates, fullName, messageBuilder));
         }
-        simpleLog.logFinish("<! method generateMessageForEmployee with header {} in class {}", className);
+        log.info("<!");
     }
 
     private void generateDayMessage(Event dates, String fullName, MessageBuilder messageBuilder) {
 
-        simpleLog.logStart("-> method generateDayMessage with header {} in class {} \n with data {}", className, fullName, dates, messageBuilder);
+        log.info("-> \n fullName {} \n dates {} \n messageBuilder {}", fullName, dates, messageBuilder);
 
         final var time = dates.getDate().plusHours(3).format(dateTimeFormatter);
 
@@ -317,7 +322,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
         } else {
             messageBuilder.watchWeeklyEvent(dates.getEventType(), dates.getTrainee(), dates.getInterviewer(), time).nextLine();
         }
-        simpleLog.logFinish("<! method generateDayMessage with header {} in class {}", className);
+        log.info("<!");
     }
 }
 

@@ -1,7 +1,6 @@
 package com.dunice.nerd_kotlin.academyReminder
 
 import com.dunice.nerd_kotlin.academyReminder.types.AcademyReminderTask
-import com.dunice.nerd_kotlin.common.Logger
 import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
-import javax.servlet.http.HttpServletRequest
 
 
 @Service
@@ -29,9 +27,11 @@ class AcademySchedulerServiceImpl(
 ) {
     @Volatile var departmentScheduler = mutableMapOf<String, MutableList<AcademyReminderTask>>()
     private val lock = ReentrantLock()
+    private val log = LoggerFactory.getLogger(this.javaClass.simpleName)
 
     fun schedule(reminders: List<AcademyReminderDocument>, department: String) {
 
+        log.info("-> \n department {} \n reminders {}", department, reminders)
         try {
             lock.lock()
 
@@ -57,11 +57,13 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
+        log.info("<!")
     }
 
 
     fun cancelScheduledTasksByDepartment(department: String) {
 
+        log.info("-> \n reminders {}", department)
         try {
             val scheduledTasks = departmentScheduler[department]
             lock.lock()
@@ -74,9 +76,12 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
+        log.info("<!")
     }
 
     fun refreshAllReminders() {
+
+        log.info("->")
 
         try {
             lock.lock()
@@ -88,19 +93,23 @@ class AcademySchedulerServiceImpl(
         } finally {
             lock.unlock()
         }
+        log.info("<!")
     }
 
     fun startCrons(department: String) {
+        log.info("-> \n reminders {}", department)
 
         val academyReminderDocuments = academyReminderRepository.findAllByIsSentAndDepartmentAndDateToSendGreaterThan(false, department, Instant.now())
 
         this.schedule(academyReminderDocuments, department)
+        log.info("<!")
     }
 
     @Profile("prod")
     @EventListener(classes =  [ContextRefreshedEvent::class] )
     fun handleTasksFromDb() {
 
+        log.info("->")
         if (env.activeProfiles.contains("dev")) {
             return
         }
@@ -112,10 +121,12 @@ class AcademySchedulerServiceImpl(
             String::class.java)
 
         data.forEach { startCrons(it) }
+        log.info("<!")
     }
 
     fun getActiveReminders(): MutableMap<String, List<Instant>> {
 
+        log.info("-><!")
         return departmentScheduler.toList().fold(mutableMapOf()) {acc, item ->
 
             acc[item.first] = item.second.map { Instant.ofEpochMilli(it.scheduledExecutionTime()) }
