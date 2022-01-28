@@ -23,8 +23,6 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
                        val membersRepository: MembersRepository)
     : SlackService {
 
-    private val className = this.javaClass.simpleName
-
     private val slack : Slack = Slack.getInstance()
     private val log = LoggerFactory.getLogger(this.javaClass.simpleName)
 
