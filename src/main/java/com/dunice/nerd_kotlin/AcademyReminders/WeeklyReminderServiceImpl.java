@@ -9,9 +9,6 @@ import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -39,14 +36,14 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 fullNameSlackIdsMap,
                 events);
 
-        final var date = events.get(0).getDate().plusHours(3);
+        val date = events.get(0).getDate().plusHours(3);
 
         val currentWeekNumber = date.get(WeekFields.ISO.weekOfYear());
         val currentWeekEvents = currentWeekEvents(events, currentWeekNumber);
 
-        final var numberOfWeekAndYear = String.valueOf(currentWeekNumber) + String.valueOf(date.getYear());
-        final var currentWeekEventsFromDB = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numberOfWeekAndYear, department);
-        final var employeeDayEvents = generateSchedule(currentWeekEvents);
+        val numberOfWeekAndYear = String.valueOf(currentWeekNumber) + String.valueOf(date.getYear());
+        val currentWeekEventsFromDB = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numberOfWeekAndYear, department);
+        val employeeDayEvents = generateSchedule(currentWeekEvents);
 
         if (currentWeekEventsFromDB.isEmpty()) {
             generateAndSendWeeklyMessage(employeeDayEvents, fullNameSlackIdsMap);
@@ -83,7 +80,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
     }
 
     public void addSlackIdsForCurrentWeekUsers(Map<String, String> fullNameSlackIdsMap, WeeklySentDocument currentWeek) {
-        logger.info("<! method addSlackIdsForCurrentWeekUsers in class {}", WeeklyReminderServiceImpl.class.getSimpleName());
+       log.info("->");
         val notFoundedRecipientsEvents = new ArrayList<Event>();
 
         currentWeek.getEvents().forEach((event) -> event.getRecipients().forEach((recipient) -> {
@@ -92,12 +89,12 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
             }
         }));
 
-        logger.info("<! method addSlackIdsForCurrentWeekUsers notFoundedRecipientsEvents {} ", notFoundedRecipientsEvents);
+        log.info("notFoundedRecipientsEvents {} ", notFoundedRecipientsEvents);
         val newFullNameSlackIdsMap = slackService.getSlackIds(notFoundedRecipientsEvents);
 
         fullNameSlackIdsMap.putAll(newFullNameSlackIdsMap);
 
-        logger.info("<! method addSlackIdsForCurrentWeekUsers new fullNameSlackIdsMap {} ", fullNameSlackIdsMap);
+        log.info("<! \n fullNameSlackIdsMap {} ", fullNameSlackIdsMap);
 
     }
 

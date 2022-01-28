@@ -7,11 +7,9 @@ import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-import javax.servlet.http.HttpServletRequest
 
 
 @Service
@@ -21,14 +19,11 @@ class AcademyReminderService(
     private val academySchedulerServiceImpl: AcademySchedulerServiceImpl,
     private val slackServiceImpl: SlackServiceImpl,
     private val weeklyReminderService: WeeklyReminderService,
-    private val httpServletRequest: HttpServletRequest
 ) {
 
     private val log = LoggerFactory.getLogger(this.javaClass.simpleName)
 
     fun addReminders(data: List<List<String>>, department: String) {
-
-        MDC.put("requestId", httpServletRequest.getHeader("requestId"))
 
         log.info("-> \n department {} \n data {}", department, data)
 
