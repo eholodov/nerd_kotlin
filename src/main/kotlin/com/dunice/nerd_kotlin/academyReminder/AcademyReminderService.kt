@@ -7,6 +7,7 @@ import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.common.db.MembersRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.stereotype.Service
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -153,7 +154,7 @@ class AcademyReminderService(
                     fullNameSlackIdsMap.getOrElse(it) {
                         throw RuntimeException("$it не была найден в fullNameSlackIdsMap")
                     },
-                    department)
+                    department, MDC.get("requestId"))
                 )
             }
             acc
@@ -237,7 +238,7 @@ class AcademyReminderService(
                     fullNameSlackIdsMap.getOrElse(name) {
                         throw RuntimeException("$name не была найден в fullNameSlackIdsMap")
                     },
-                    department,
+                    department, MDC.get("requestId")
                 ))
             }
 

@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 class WeeklySentDocument(
     var weekNumber: String,
     var department: String,
+    var requestId: String,
     var events: List<Event>?
 ){
     @Id

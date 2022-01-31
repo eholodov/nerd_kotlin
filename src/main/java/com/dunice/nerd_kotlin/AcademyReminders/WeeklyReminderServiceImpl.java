@@ -9,6 +9,7 @@ import kotlin.Pair;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -47,7 +48,7 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
         if (currentWeekEventsFromDB.isEmpty()) {
             generateAndSendWeeklyMessage(employeeDayEvents, fullNameSlackIdsMap);
-            WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(numberOfWeekAndYear, department, currentWeekEvents);
+            WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(numberOfWeekAndYear, department, MDC.get("requestId"), currentWeekEvents);
             weeklyIsSendRepository.save(weeklyIsSendDocument);
         } else {
 
