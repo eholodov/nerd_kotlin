@@ -12,23 +12,19 @@ import com.slack.api.methods.request.chat.ChatPostMessageRequest
 import com.slack.api.methods.request.users.UsersListRequest
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.event.ContextRefreshedEvent
-import org.springframework.context.event.EventListener
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
-import javax.annotation.PostConstruct
 
 @Service
 class SlackServiceImpl(val mongoTemplate: MongoTemplate,
                        val membersRepository: MembersRepository)
     : SlackService {
 
-    private var logger = LoggerFactory.getLogger(this.javaClass);
-
     private val slack : Slack = Slack.getInstance()
+    private val log = LoggerFactory.getLogger(this.javaClass.simpleName)
 
     @Value("\${slack.web.api.token}")
     lateinit var token : String
@@ -70,7 +66,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
 
     fun getUsersFromSlackV2() {
 
-        logger.info("-> method getUsersFromSlackV2 in class {}", this.javaClass.simpleName)
+        log.info("->")
 
         val users = slack.methods().usersList(UsersListRequest.builder().token(token).teamId(teamId).build()).members?:
         throw CustomException(PERSON_NOT_FOUND)
@@ -80,7 +76,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
             mongoTemplate.upsert(Query().addCriteria(Criteria.where("email").`is`(member.email)),
                 Update().set("slackId", member.slackId).set("fullName", member.fullName), "slackIds")
         }
-        logger.info("<! method getUsersFromSlackV2 in class {}", this.javaClass.simpleName)
+        log.info("<!")
     }
 
     @Deprecated("use getUsersFromSlack v2")
@@ -99,7 +95,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
 
     fun getSlackIds(data: List<Event>): MutableMap<String, String> {
 
-        logger.info("-> method getSlackIds in class {}, \n data {}", this.javaClass.simpleName, data)
+        log.info("-> \n data {}", data)
 
         val recipients = data.fold(mutableSetOf<String>()) { acc, item ->
             item.recipients.forEach {
@@ -123,8 +119,7 @@ class SlackServiceImpl(val mongoTemplate: MongoTemplate,
                 throw RuntimeException("Не были найдены slack id для пользователе ${diff.joinToString(" ")}")
             }
         }
-
-        logger.info("<! method getSlackIds in class {}", this.javaClass.simpleName)
+        log.info("<!")
 
         return slackIdsFullName.fold(mutableMapOf()) { acc, item ->
 
