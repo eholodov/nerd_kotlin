@@ -14,11 +14,7 @@ public class LoggerInterceptor implements HandlerInterceptor {
     public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler) throws Exception {
 
         Optional<String> header = Optional.ofNullable(request.getHeader("requestId"));
-        if (header.isPresent()){
-            MDC.put("requestId", request.getHeader("requestId"));
-        } else {
-            MDC.put("requestId", "IsEmpty");
-        }
+        MDC.put("requestId", header.isPresent() ? request.getHeader("requestId") : "IsEmpty");
         return true;
     }
 }
