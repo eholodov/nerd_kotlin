@@ -5,6 +5,7 @@ import com.dunice.nerd_kotlin.common.db.AcademyReminderDocument
 import com.dunice.nerd_kotlin.common.db.AcademyReminderRepository
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.context.annotation.Profile
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
@@ -46,6 +47,7 @@ class AcademySchedulerServiceImpl(
                     departmentScheduler,
                     slackServiceImpl,
                     department,
+                    MDC.get("requestId"),
                     lock
                 )
                 scheduledTasks!!.add(task)
