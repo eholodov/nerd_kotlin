@@ -8,7 +8,8 @@ import org.springframework.data.mongodb.core.mapping.Document
 class WeeklySentDocument(
     var weekNumber: String,
     var department: String,
-    var events: List<Event>?
+    var events: List<Event>,
+    var isSent: Boolean?
 ){
     @Id
     lateinit var id: String
