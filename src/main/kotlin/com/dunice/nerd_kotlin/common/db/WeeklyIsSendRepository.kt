@@ -9,4 +9,6 @@ interface WeeklyIsSendRepository : MongoRepository<WeeklySentDocument, String> {
 
     fun findOneByWeekNumberAndDepartment(weekNumber: String, department: String) : Optional<WeeklySentDocument>
 
+    fun findAllByDepartment(department: String) : List<WeeklySentDocument>
+
 }

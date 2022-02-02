@@ -1,14 +1,21 @@
 package com.dunice.nerd_kotlin.AcademyReminders;
 
+import com.dunice.nerd_kotlin.AcademyRemindersSchedule.WeeklyReminderScheduleService;
+import com.dunice.nerd_kotlin.AcademyRemindersSchedule.WeeklyReminderTask;
 import com.dunice.nerd_kotlin.academyReminder.MessageBuilder;
 import com.dunice.nerd_kotlin.academyReminder.types.Event;
 import com.dunice.nerd_kotlin.common.db.WeeklySentDocument;
 import com.dunice.nerd_kotlin.common.db.WeeklyIsSendRepository;
 import com.dunice.nerd_kotlin.services.slack.SlackServiceImpl;
 import kotlin.Pair;
+import kotlin.jvm.Volatile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -17,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,8 +34,11 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
     private final SlackServiceImpl slackService;
     private final WeeklyIsSendRepository weeklyIsSendRepository;
+    private final MongoTemplate mongoTemplate;
+    private final WeeklyReminderScheduleService weeklyReminderScheduleService;
 
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
 
     public void sendWeeklyReminders(List<Event> events, String department, Map<String, String> fullNameSlackIdsMap) {
 
@@ -37,46 +48,76 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
                 events);
 
         val date = events.get(0).getDate().plusHours(3);
+        val weekNumberFromEvents = date.get(WeekFields.ISO.weekOfYear());
+        val numberOfWeekAndYear = getStringNumberOfWeekAndYear(date);
 
-        val currentWeekNumber = date.get(WeekFields.ISO.weekOfYear());
-        val currentWeekEvents = currentWeekEvents(events, currentWeekNumber);
+        separateEventsByWeek(events, department);
 
-        val numberOfWeekAndYear = String.valueOf(currentWeekNumber) + String.valueOf(date.getYear());
+        val now = OffsetDateTime.now();
+        val currentWeekNumberAndYear = getStringNumberOfWeekAndYear(now);
+
+        val listOfGroupedEvents = weeklyIsSendRepository.findAllByDepartment(department);
+
+        listOfGroupedEvents.forEach(weeklySentDocument -> {
+            if (weeklySentDocument.getWeekNumber().equals(currentWeekNumberAndYear)) {
+                val currentWeekEvents = generateSchedule(weeklySentDocument.getEvents());
+                if (Boolean.FALSE.equals(weeklySentDocument.isSent())) {
+                    generateAndSendWeeklyMessage(currentWeekEvents, fullNameSlackIdsMap);
+                }
+                else {
+                    // тут я не очень понимаю как запускать дифы, если в базе уже лежит измененное расписание
+                }
+            } else {
+                if (Boolean.FALSE.equals(weeklySentDocument.isSent())) {
+                    weeklyReminderScheduleService.schedule(weeklySentDocument, department, fullNameSlackIdsMap);
+                }
+            }
+        });
+
+        val currentWeekEvents = currentWeekEvents(events, weekNumberFromEvents);
+
         val currentWeekEventsFromDB = weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numberOfWeekAndYear, department);
         val employeeDayEvents = generateSchedule(currentWeekEvents);
 
-        if (currentWeekEventsFromDB.isEmpty()) {
-            generateAndSendWeeklyMessage(employeeDayEvents, fullNameSlackIdsMap);
-            WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(numberOfWeekAndYear, department, currentWeekEvents);
-            weeklyIsSendRepository.save(weeklyIsSendDocument);
-        } else {
 
-            addSlackIdsForCurrentWeekUsers(fullNameSlackIdsMap, currentWeekEventsFromDB.get());
-            val now = OffsetDateTime.now();
-            val newCorrectedEvents = correctEvents(currentWeekEvents, now);
-            val oldCorrectedEvents = correctEvents(Objects.requireNonNull(currentWeekEventsFromDB.get().getEvents()), now);
 
-            val diffs = generateDiffs(newCorrectedEvents, oldCorrectedEvents);
-
-            if (diffs == null) return;
-
-            val removedEventsSchedule = generateSchedule(diffs.component1());
-
-            val addedEventsSchedule = generateSchedule(diffs.component2());
-
-            val mergedEventsSchedule = mergeRemovedAddedEvents(removedEventsSchedule, addedEventsSchedule);
-
-            val messages = generateDiffMessages(mergedEventsSchedule, fullNameSlackIdsMap);
-
-            log.info("generateDiffMessages {}", messages);
-
-            val currenWeekData = currentWeekEventsFromDB.get();
-            currenWeekData.setEvents(newCorrectedEvents);
-            weeklyIsSendRepository.save(currenWeekData);
-
-            messages.forEach((elem) -> slackService.postMessage(elem.component1(), elem.component2()));
-        }
+//        if (currentWeekEventsFromDB.isEmpty()) {
+//            generateAndSendWeeklyMessage(employeeDayEvents, fullNameSlackIdsMap);
+//            WeeklySentDocument weeklyIsSendDocument = new WeeklySentDocument(numberOfWeekAndYear, department, currentWeekEvents, false);
+//            weeklyIsSendRepository.save(weeklyIsSendDocument);
+//        } else {
+//
+//            addSlackIdsForCurrentWeekUsers(fullNameSlackIdsMap, currentWeekEventsFromDB.get());
+//            val newCorrectedEvents = correctEvents(currentWeekEvents, now);
+//            val oldCorrectedEvents = correctEvents(Objects.requireNonNull(currentWeekEventsFromDB.get().getEvents()), now);
+//
+//            val diffs = generateDiffs(newCorrectedEvents, oldCorrectedEvents);
+//
+//            if (diffs == null) return;
+//
+//            val removedEventsSchedule = generateSchedule(diffs.component1());
+//
+//            val addedEventsSchedule = generateSchedule(diffs.component2());
+//
+//            val mergedEventsSchedule = mergeRemovedAddedEvents(removedEventsSchedule, addedEventsSchedule);
+//
+//            val messages = generateDiffMessages(mergedEventsSchedule, fullNameSlackIdsMap);
+//
+//            log.info("generateDiffMessages {}", messages);
+//
+//            val currenWeekData = currentWeekEventsFromDB.get();
+//            currenWeekData.setEvents(newCorrectedEvents);
+//            weeklyIsSendRepository.save(currenWeekData);
+//
+//            messages.forEach((elem) -> slackService.postMessage(elem.component1(), elem.component2()));
+//        }
         log.info("<!");
+    }
+
+
+
+    public String getStringNumberOfWeekAndYear(OffsetDateTime time) {
+        return String.valueOf(time.get(WeekFields.ISO.weekOfYear())) + String.valueOf(time.getYear());
     }
 
     public void addSlackIdsForCurrentWeekUsers(Map<String, String> fullNameSlackIdsMap, WeeklySentDocument currentWeek) {
@@ -96,6 +137,43 @@ public class WeeklyReminderServiceImpl implements WeeklyReminderService {
 
         log.info("<! \n fullNameSlackIdsMap {} ", fullNameSlackIdsMap);
 
+    }
+
+    public void separateEventsByWeek(List<Event> events, String department) {
+        log.info("-> \n events {}, \n currentWeekNumber {}", events, department);
+
+        val listOfWeekNumbers = events.stream()
+                .map(event -> getStringNumberOfWeekAndYear(event.getDate()))
+                .distinct()
+                .collect(Collectors.toList());
+
+
+        listOfWeekNumbers.forEach(numbers -> {
+            List<Event> listEvents = new ArrayList<>();
+            if (weeklyIsSendRepository.findOneByWeekNumberAndDepartment(numbers, department).isEmpty()) {
+                events.forEach(event -> {
+                    val num = getStringNumberOfWeekAndYear(event.getDate());
+                    if (numbers.equals(num)) {
+                        listEvents.add(event);
+                    }
+                });
+                weeklyIsSendRepository.save(new WeeklySentDocument(numbers, department, listEvents, false));
+                listEvents.clear();
+            } else {
+                events.forEach(event -> {
+                    val num = getStringNumberOfWeekAndYear(event.getDate());
+                    if (numbers.equals(num)) {
+                        listEvents.add(event);
+                    }
+                });
+                Query query = new Query();
+                query.addCriteria(Criteria.where("weekNumber").is(numbers));
+                Update update = new Update();
+                update.set("events", listEvents);
+                mongoTemplate.upsert(query, update, WeeklySentDocument.class);
+            }
+        });
+        log.info("<!");
     }
 
     public List<Event> currentWeekEvents(List<Event> events, int currentWeekNumber) {
